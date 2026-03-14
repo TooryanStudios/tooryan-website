@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tooryan Studios | Digital Animation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #07050f;
+            --text: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border: rgba(255, 255, 255, 0.08);
+            --card-bg: rgba(20, 15, 35, 0.4);
+            --primary-gradient: linear-gradient(135deg, #d864ff 0%, #7d35ff 100%);
+            --text-gradient: linear-gradient(to right, #ffffff 20%, #d864ff 50%, #7d35ff 80%);
+            --glow-purple: rgba(125, 53, 255, 0.5);
+            --glow-pink: rgba(216, 100, 255, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Abstract Glows */
+        .glow-bg {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .glow-bg::before, .glow-bg::after {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.4;
+        }
+
+        .glow-bg::before {
+            top: -100px;
+            left: 10%;
+            background: radial-gradient(circle, var(--glow-purple) 0%, transparent 70%);
+        }
+
+        .glow-bg::after {
+            top: 40%;
+            right: -100px;
+            background: radial-gradient(circle, var(--glow-pink) 0%, transparent 70%);
+        }
+
+        /* Ribbon */
+        .hero-ribbon {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 1200px;
+            height: 500px;
+            background: radial-gradient(ellipse at center, rgba(125, 53, 255, 0.15) 0%, transparent 70%);
+            z-index: -1;
+            border-radius: 50%;
+            filter: blur(40px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navbar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 20px rgba(125, 53, 255, 0.3);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(125, 53, 255, 0.5);
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 120px 0 80px;
+            position: relative;
+        }
+
+        .hero-eyebrow {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(125, 53, 255, 0.1);
+            border: 1px solid rgba(125, 53, 255, 0.3);
+            border-radius: 20px;
+            color: #d864ff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 6vw, 5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -1px;
+        }
+
+        .hero h1 span {
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        /* Section Titles */
+        .section-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Cards / Featured Work */
+        .work-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 120px;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(216, 100, 255, 0.4);
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top left, rgba(125, 53, 255, 0.1), transparent 50%);
+            pointer-events: none;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 240px;
+            border-radius: 16px;
+            background-color: #1a1525;
+            margin-bottom: 24px;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .glass-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* Zig Zag Services */
+        .services-section {
+            padding: 80px 0;
+            position: relative;
+        }
+
+        .zigzag-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* The glowing connecting line */
+        .zigzag-line {
+            position: absolute;
+            top: 50px;
+            bottom: 50px;
+            left: 50%;
+            width: 2px;
+            background: linear-gradient(to bottom, rgba(216, 100, 255, 0), rgba(216, 100, 255, 0.5), rgba(125, 53, 255, 0.5), rgba(125, 53, 255, 0));
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-item:nth-child(even) {
+            flex-direction: row-reverse;
+            text-align: right;
+        }
+
+        .service-number {
+            font-size: 4rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.05);
+            -webkit-text-stroke: 1px rgba(216, 100, 255, 0.3);
+            width: 120px;
+            text-align: center;
+        }
+
+        .service-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            flex: 1;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .service-item:nth-child(odd) .service-content {
+            box-shadow: -20px 20px 40px rgba(0,0,0,0.5);
+        }
+        
+        .service-item:nth-child(even) .service-content {
+            box-shadow: 20px 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .service-content h3 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .service-content p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Vision / Quote Box */
+        .vision-section {
+            padding: 100px 0;
+            text-align: center;
+        }
+
+        .vision-box {
+            background: linear-gradient(180deg, rgba(30, 20, 50, 0.5) 0%, rgba(15, 10, 25, 0.5) 100%);
+            border: 1px solid rgba(125, 53, 255, 0.3);
+            border-radius: 32px;
+            padding: 64px 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 0 40px rgba(125, 53, 255, 0.1);
+        }
+
+        .vision-box h2 {
+            font-size: 2rem;
+            margin-bottom: 24px;
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .vision-box p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 24px;
+        }
+
+        .vision-box blockquote {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: #fff;
+            border-left: 2px solid #d864ff;
+            padding-left: 16px;
+            margin-top: 32px;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(to top, rgba(125, 53, 255, 0.1), transparent);
+            padding: 80px 0 40px;
+            margin-top: 80px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .footer-cta {
+            margin-bottom: 60px;
+        }
+
+        .footer-cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+
+        .footer-cta p {
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border);
+            padding-top: 32px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2.5rem; }
+            .work-grid { grid-template-columns: 1fr; }
+            .zigzag-line { display: none; }
+            .service-item, .service-item:nth-child(even) {
+                flex-direction: column;
+                text-align: left;
+                gap: 16px;
+            }
+            .service-number { width: auto; text-align: left; font-size: 3rem; }
+            .footer-bottom { flex-direction: column; gap: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-bg"></div>
+
+    <div class="container">
+        <nav>
+            <a href="#" class="logo">Tooryan.</a>
+            <div class="nav-links">
+                <a href="#work">Work</a>
+                <a href="#services">Services</a>
+                <a href="#vision">Vision</a>
+                <a href="./admin.html">Admin</a>
+            </div>
+            <a href="#contact" class="btn btn-primary">Start Project</a>
+        </nav>
+
+        <section class="hero">
+            <div class="hero-ribbon"></div>
+            <span class="hero-eyebrow" id="heroEyebrow"></span>
+            <h1 id="heroTitle"></h1>
+            <p id="heroDescription"></p>
+            <div class="hero-actions">
+                <a href="#work" class="btn btn-primary">View Portfolio</a>
+                <a href="#services" class="btn btn-outline">Explore Services</a>
+            </div>
+        </section>
+
+        <section id="work" style="padding-top: 60px;">
+            <div class="section-header">
+                <h2 id="featuredHeading"></h2>
+                <p id="featuredText"></p>
+            </div>
+            
+            <div class="work-grid">
+                <div class="glass-card">
+                    <div class="card-image" id="side1ImageCard"></div>
+                    <h3 id="side1Title"></h3>
+                    <p id="side1Text"></p>
+                </div>
+                <div class="glass-card">
+                    <div class="card-image" id="side2ImageCard"></div>
+                    <h3 id="side2Title"></h3>
+                    <p id="side2Text"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="services-section">
+            <div class="section-header">
+                <h2>Why Tooryan</h2>
+                <p>A specialized digital studio blending art, animation, and technical precision.</p>
+            </div>
+
+            <div class="zigzag-container">
+                <div class="zigzag-line"></div>
+                
+                <div class="service-item">
+                    <div class="service-number">01</div>
+                    <div class="service-content">
+                        <h3 id="service1Title"></h3>
+                        <p id="service1Text"></p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">02</div>
+                    <div class="service-content">
+                        <h3 id="service2Title"></h3>
+                        <p id="service2Text"></p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">03</div>
+                    <div class="service-content">
+                        <h3 id="service3Title"></h3>
+                        <p id="service3Text"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="vision" class="vision-section">
+            <div class="vision-box">
+                <h2 id="visionTitle"></h2>
+                <p id="visionText"></p>
+                <blockquote id="quote"></blockquote>
+            </div>
+        </section>
+    </div>
+
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-cta">
+                <h2 id="contactTitle"></h2>
+                <p id="contactText"></p>
+                <a href="#" id="emailCta" class="btn btn-primary">Join Our Studio</a>
+            </div>
+            <div class="footer-bottom">
+                <div class="logo" style="font-size: 1.2rem;">Tooryan.</div>
+                <div style="display: flex; gap: 24px;">
+                    <a href="#" id="emailLink" style="color: var(--text-muted); text-decoration: none;"></a>
+                    <a href="#" id="phoneLink" style="color: var(--text-muted); text-decoration: none;"></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="./site-config.js"></script>
+    <script>
+        const content = window.getTooryanContent();
+        
+        const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value || ''; };
+        const setHtml = (id, value) => { const el = document.getElementById(id); if (el) el.innerHTML = value || ''; };
+        const setBg = (id, url) => { const el = document.getElementById(id); if (el && url) el.style.backgroundImage = `url('${url}')`; };
+
+        setText('heroEyebrow', content.heroEyebrow);
+        
+        let hTitle = content.heroTitleHtml || content.heroTitle;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = hTitle;
+        let plainText = tempDiv.textContent || tempDiv.innerText || "";
+        let words = plainText.split(' ');
+        if(words.length > 2) {
+            let lastWords = words.splice(-2).join(' ');
+            hTitle = `${words.join(' ')} <span>${lastWords}</span>`;
+        }
+        setHtml('heroTitle', hTitle);
+        
+        setText('heroDescription', content.heroDescription);
+        setText('featuredHeading', content.featuredHeading);
+        setText('featuredText', content.featuredText);
+        
+        setText('side1Title', content.side1Title);
+        setText('side1Text', content.side1Text);
+        setBg('side1ImageCard', content.side1Image);
+        
+        setText('side2Title', content.side2Title);
+        setText('side2Text', content.side2Text);
+        setBg('side2ImageCard', content.side2Image);
+
+        setText('service1Title', content.service1Title);
+        setText('service1Text', content.service1Text);
+        setText('service2Title', content.service2Title);
+        setText('service2Text', content.service2Text);
+        setText('service3Title', content.service3Title);
+        setText('service3Text', content.service3Text);
+        
+        setText('visionTitle', content.visionTitle);
+        setText('visionText', content.visionText);
+        setText('quote', `"${content.quote}"`);
+        
+        setText('contactTitle', content.contactTitle);
+        setText('contactText', content.contactText);
+        
+        const emailLink = document.getElementById('emailLink');
+        const emailCta = document.getElementById('emailCta');
+        if(emailLink) {
+            emailLink.textContent = content.email;
+            emailLink.href = `mailto:${content.email}`;
+            if(emailCta) emailCta.href = `mailto:${content.email}`;
+        }
+        
+        const phoneLink = document.getElementById('phoneLink');
+        if(phoneLink) {
+            phoneLink.textContent = content.phone;
+            phoneLink.href = `tel:${content.phone.replace(/\s+/g, '')}`;
+        }
+    </script>
+</body>
+</html>
