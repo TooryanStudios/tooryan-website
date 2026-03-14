@@ -905,6 +905,7 @@
                 <a href="#services">Services</a>
                 <a href="#vision">Vision</a>
                 <a href="#contact">Contact</a>
+                <a href="./admin.html">Admin</a>
             </nav>
             <a class="pill-btn primary" href="#contact">Start a Project</a>
         </div>
@@ -914,15 +915,9 @@
         <section class="hero" id="home">
             <div class="shell hero-grid">
                 <div class="hero-copy reveal visible">
-                    <span class="eyebrow">Oman Based Digital Animation Studio</span>
-                    <h1>
-                        Building
-                        <span class="stroke">cinematic worlds</span>
-                        for modern brands.
-                    </h1>
-                    <p>
-                        Tooryan Studios creates bold animation, digital art, and visual storytelling that feels premium, dimensional, and unforgettable. We merge Omani identity with futuristic motion design.
-                    </p>
+                    <span class="eyebrow" id="heroEyebrow"></span>
+                    <h1 id="heroTitle"></h1>
+                    <p id="heroDescription"></p>
                     <div class="hero-actions">
                         <a class="pill-btn primary" href="#work">See Featured Work</a>
                         <a class="pill-btn" href="#services">Our Capabilities</a>
@@ -949,22 +944,22 @@
                     <div class="orbital-ring ring-b"></div>
                     <div class="orbital-ring ring-c"></div>
                     <div class="stage-panel">
-                        <div class="panel-screen"></div>
+                        <div class="panel-screen" id="heroImagePanel" style="background-size:cover;background-position:center;"></div>
                     </div>
                     <article class="floating-card card-1 layer-card">
-                        <small>Feature Film Energy</small>
-                        <h3>Motion with Depth</h3>
-                        <p>Layered scenes, dramatic lighting, and visual rhythm that feels like an opening sequence.</p>
+                        <small id="heroCard1Label"></small>
+                        <h3 id="heroCard1Title"></h3>
+                        <p id="heroCard1Text"></p>
                     </article>
                     <article class="floating-card card-2 layer-card">
-                        <small>Studio Signature</small>
-                        <h3>Culture Reimagined</h3>
-                        <p>Traditional identity translated into contemporary, digital-first visual language.</p>
+                        <small id="heroCard2Label"></small>
+                        <h3 id="heroCard2Title"></h3>
+                        <p id="heroCard2Text"></p>
                     </article>
                     <article class="floating-card card-3 layer-card">
-                        <small>Interactive Direction</small>
-                        <h3>3D Presence</h3>
-                        <p>Depth, glass surfaces, kinetic motion, and premium transitions across every touchpoint.</p>
+                        <small id="heroCard3Label"></small>
+                        <h3 id="heroCard3Title"></h3>
+                        <p id="heroCard3Text"></p>
                     </article>
                 </div>
             </div>
@@ -991,50 +986,48 @@
             <div class="section-head">
                 <div>
                     <span class="section-kicker">Featured Work</span>
-                    <h2>Not flat portfolio cards. Worlds with atmosphere, motion, and presence.</h2>
+                    <h2 id="featuredHeading"></h2>
                 </div>
-                <p>
-                    I used the Tooryan Studios business profile memory to keep the direction aligned with your studio identity, services, and known projects.
-                </p>
+                <p id="featuredText"></p>
             </div>
             <div class="showcase-grid">
                 <div class="showcase-main layer-card">
                     <div class="showcase-top">
                         <div>
-                            <span class="showcase-badge">Hero Project / Mazen Series</span>
+                            <span class="showcase-badge" id="featuredMainBadge"></span>
                         </div>
                         <a class="pill-btn" href="#contact">Discuss Similar Work</a>
                     </div>
-                    <div class="showcase-screen">
+                    <div class="showcase-screen" id="featuredMainImage" style="background-size:cover;background-position:center;">
                         <div class="screen-label">
-                            <span>Animation Universe</span>
-                            <strong>Mazen Series</strong>
+                            <span id="featuredMainLabel"></span>
+                            <strong id="featuredMainTitle"></strong>
                         </div>
                     </div>
                     <div class="showcase-stats">
                         <div>
-                            <strong>Storyboard</strong>
-                            <span>Concept to visual narrative</span>
+                            <strong id="featuredStat1Title"></strong>
+                            <span id="featuredStat1Text"></span>
                         </div>
                         <div>
-                            <strong>Lighting</strong>
-                            <span>Cinematic mood and depth</span>
+                            <strong id="featuredStat2Title"></strong>
+                            <span id="featuredStat2Text"></span>
                         </div>
                         <div>
-                            <strong>Motion</strong>
-                            <span>Rhythm built for screen impact</span>
+                            <strong id="featuredStat3Title"></strong>
+                            <span id="featuredStat3Text"></span>
                         </div>
                     </div>
                 </div>
                 <div class="showcase-side">
-                    <article class="showcase-side-card layer-card">
-                        <h3>Ibn Al Dahabi</h3>
-                        <p>A refined motion direction for broadcast storytelling, balancing visual clarity with emotional weight.</p>
+                    <article class="showcase-side-card layer-card" id="side1ImageCard" style="background-size:cover;background-position:center;">
+                        <h3 id="side1Title"></h3>
+                        <p id="side1Text"></p>
                         <div class="shape"></div>
                     </article>
-                    <article class="showcase-side-card layer-card">
-                        <h3>Saudi Arabian Reading</h3>
-                        <p>Editorial visual language, stylized composition, and modern digital art framing for educational impact.</p>
+                    <article class="showcase-side-card layer-card" id="side2ImageCard" style="background-size:cover;background-position:center;">
+                        <h3 id="side2Title"></h3>
+                        <p id="side2Text"></p>
                         <div class="shape"></div>
                     </article>
                 </div>
@@ -1047,15 +1040,13 @@
                     <span class="section-kicker">Core Services</span>
                     <h2>Built to feel like a studio with visual power, not a generic agency template.</h2>
                 </div>
-                <p>
-                    Each service is positioned as a premium creative capability with a stronger visual identity and deeper interaction language.
-                </p>
+                <p>Each service is positioned as a premium creative capability with a stronger visual identity and deeper interaction language.</p>
             </div>
             <div class="services-grid">
                 <article class="service-box layer-card">
                     <span class="service-index">01 / Animation</span>
-                    <h3>3D Animation</h3>
-                    <p>Immersive character motion, stylized environments, title sequences, and cinematic scene construction for high-impact storytelling.</p>
+                    <h3 id="service1Title"></h3>
+                    <p id="service1Text"></p>
                     <div class="service-tags">
                         <span>Look Dev</span>
                         <span>Environment Design</span>
@@ -1064,8 +1055,8 @@
                 </article>
                 <article class="service-box layer-card">
                     <span class="service-index">02 / Production</span>
-                    <h3>Video Production</h3>
-                    <p>Direction, editing, transitions, pacing, and visual narrative systems crafted to elevate commercial and broadcast communication.</p>
+                    <h3 id="service2Title"></h3>
+                    <p id="service2Text"></p>
                     <div class="service-tags">
                         <span>Editing</span>
                         <span>Creative Direction</span>
@@ -1074,8 +1065,8 @@
                 </article>
                 <article class="service-box layer-card">
                     <span class="service-index">03 / Art</span>
-                    <h3>Digital Art</h3>
-                    <p>Original concept visuals and polished artwork infused with regional character, contemporary styling, and strong composition.</p>
+                    <h3 id="service3Title"></h3>
+                    <p id="service3Text"></p>
                     <div class="service-tags">
                         <span>Concept Art</span>
                         <span>Illustration</span>
@@ -1089,33 +1080,31 @@
             <div class="split-band">
                 <article class="quote-box layer-card">
                     <span class="section-kicker">Studio Vision</span>
-                    <h3>Tooryan is where heritage becomes spectacle.</h3>
-                    <p>We turn story, symbolism, and identity into advanced digital visuals that feel modern on a global stage.</p>
-                    <blockquote>
-                        “A stronger front page should feel like entering a visual world, not reading a brochure.”
-                    </blockquote>
+                    <h3 id="visionTitle"></h3>
+                    <p id="visionText"></p>
+                    <blockquote id="quote"></blockquote>
                 </article>
                 <article class="contact-box layer-card" id="contact">
                     <span class="section-kicker">Contact</span>
-                    <h3>Let’s create your next visual experience.</h3>
-                    <p>For brand films, series visuals, animation, digital art, and premium storytelling systems.</p>
+                    <h3 id="contactTitle"></h3>
+                    <p id="contactText"></p>
                     <div class="contact-list">
                         <div class="contact-row">
                             <strong>Phone</strong>
-                            <a href="tel:+96892117587">+968 9211 7587</a>
+                            <a id="phoneLink" href="#"></a>
                         </div>
                         <div class="contact-row">
                             <strong>Email</strong>
-                            <a href="mailto:tooryanart@gmail.com">tooryanart@gmail.com</a>
+                            <a id="emailLink" href="#"></a>
                         </div>
                         <div class="contact-row">
                             <strong>Location</strong>
-                            <span>Oman</span>
+                            <span id="locationText"></span>
                         </div>
                     </div>
                     <div class="hero-actions">
-                        <a class="pill-btn primary" href="mailto:tooryanart@gmail.com">Email the Studio</a>
-                        <a class="pill-btn" href="tel:+96892117587">Call Now</a>
+                        <a class="pill-btn primary" id="emailCta" href="#">Email the Studio</a>
+                        <a class="pill-btn" id="phoneCta" href="#">Call Now</a>
                     </div>
                 </article>
             </div>
@@ -1132,7 +1121,88 @@
         </div>
     </footer>
 
+    <script src="./site-config.js"></script>
     <script>
+        const content = window.getTooryanContent();
+
+        const setText = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value || '';
+            }
+        };
+
+        const setHtml = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerHTML = value || '';
+            }
+        };
+
+        const setBackground = (id, url) => {
+            const element = document.getElementById(id);
+            if (element && url) {
+                element.style.backgroundImage = `linear-gradient(rgba(6,9,20,0.18), rgba(6,9,20,0.38)), url('${url}')`;
+            }
+        };
+
+        setText('heroEyebrow', content.heroEyebrow);
+        setHtml('heroTitle', content.heroTitleHtml);
+        setText('heroDescription', content.heroDescription);
+        setBackground('heroImagePanel', content.heroImage);
+        setText('heroCard1Label', content.heroCard1Label);
+        setText('heroCard1Title', content.heroCard1Title);
+        setText('heroCard1Text', content.heroCard1Text);
+        setText('heroCard2Label', content.heroCard2Label);
+        setText('heroCard2Title', content.heroCard2Title);
+        setText('heroCard2Text', content.heroCard2Text);
+        setText('heroCard3Label', content.heroCard3Label);
+        setText('heroCard3Title', content.heroCard3Title);
+        setText('heroCard3Text', content.heroCard3Text);
+        setText('featuredHeading', content.featuredHeading);
+        setText('featuredText', content.featuredText);
+        setText('featuredMainBadge', content.featuredMainBadge);
+        setText('featuredMainLabel', content.featuredMainLabel);
+        setText('featuredMainTitle', content.featuredMainTitle);
+        setBackground('featuredMainImage', content.featuredMainImage);
+        setText('featuredStat1Title', content.featuredStat1Title);
+        setText('featuredStat1Text', content.featuredStat1Text);
+        setText('featuredStat2Title', content.featuredStat2Title);
+        setText('featuredStat2Text', content.featuredStat2Text);
+        setText('featuredStat3Title', content.featuredStat3Title);
+        setText('featuredStat3Text', content.featuredStat3Text);
+        setText('side1Title', content.side1Title);
+        setText('side1Text', content.side1Text);
+        setBackground('side1ImageCard', content.side1Image);
+        setText('side2Title', content.side2Title);
+        setText('side2Text', content.side2Text);
+        setBackground('side2ImageCard', content.side2Image);
+        setText('service1Title', content.service1Title);
+        setText('service1Text', content.service1Text);
+        setText('service2Title', content.service2Title);
+        setText('service2Text', content.service2Text);
+        setText('service3Title', content.service3Title);
+        setText('service3Text', content.service3Text);
+        setText('visionTitle', content.visionTitle);
+        setText('visionText', content.visionText);
+        setText('quote', `“${content.quote}”`);
+        setText('contactTitle', content.contactTitle);
+        setText('contactText', content.contactText);
+        setText('locationText', content.location);
+
+        const phoneHref = `tel:${content.phone.replace(/\\s+/g, '')}`;
+        const emailHref = `mailto:${content.email}`;
+        const phoneLink = document.getElementById('phoneLink');
+        const emailLink = document.getElementById('emailLink');
+        const emailCta = document.getElementById('emailCta');
+        const phoneCta = document.getElementById('phoneCta');
+        phoneLink.textContent = content.phone;
+        phoneLink.href = phoneHref;
+        emailLink.textContent = content.email;
+        emailLink.href = emailHref;
+        emailCta.href = emailHref;
+        phoneCta.href = phoneHref;
+
         const revealItems = document.querySelectorAll('.reveal');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
