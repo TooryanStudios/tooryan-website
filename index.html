@@ -474,6 +474,376 @@
             padding: 110px 0;
         }
 
+        .hero {
+            min-height: 115vh;
+        }
+
+        .hero-copy {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-copy p {
+            max-width: 560px;
+        }
+
+        .hero-meta {
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+            margin-top: 38px;
+        }
+
+        .meta-card {
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            padding: 0;
+            box-shadow: none;
+            backdrop-filter: none;
+            min-width: 120px;
+        }
+
+        .meta-card strong {
+            font-size: 2.2rem;
+            line-height: 1;
+        }
+
+        .hero-stage {
+            min-height: 820px;
+        }
+
+        .orbital-core {
+            width: 520px;
+            height: 520px;
+            opacity: 0.9;
+        }
+
+        .ring-a {
+            width: 620px;
+            height: 620px;
+        }
+
+        .ring-b {
+            width: 760px;
+            height: 760px;
+        }
+
+        .ring-c {
+            width: 860px;
+            height: 860px;
+        }
+
+        .stage-panel {
+            width: 430px;
+            aspect-ratio: 0.78;
+            transform: translate(-44%, -48%) rotateY(-24deg) rotateX(12deg);
+            box-shadow: 0 45px 120px rgba(0, 0, 0, 0.5);
+        }
+
+        .panel-screen::after {
+            inset: auto;
+            left: 14%;
+            right: 14%;
+            bottom: 9%;
+            top: 58%;
+            border-radius: 999px;
+            filter: blur(22px);
+            background: rgba(0, 0, 0, 0.35);
+            border: 0;
+            transform: none;
+        }
+
+        .floating-card {
+            background: linear-gradient(180deg, rgba(11, 17, 34, 0.78), rgba(11, 17, 34, 0.4));
+        }
+
+        .card-1 {
+            top: 60px;
+            right: 0;
+        }
+
+        .card-2 {
+            bottom: 180px;
+            left: -10px;
+        }
+
+        .card-3 {
+            right: 110px;
+            bottom: 30px;
+        }
+
+        .studio-section {
+            position: relative;
+            padding: 120px 0;
+        }
+
+        .studio-label {
+            display: inline-block;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            font-size: 0.76rem;
+            margin-bottom: 18px;
+        }
+
+        .studio-intro {
+            display: grid;
+            grid-template-columns: 0.9fr 1.1fr;
+            gap: 34px;
+            align-items: end;
+            margin-bottom: 44px;
+        }
+
+        .studio-intro h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.6rem, 5vw, 5rem);
+            line-height: 0.95;
+            max-width: 760px;
+        }
+
+        .studio-intro p {
+            max-width: 470px;
+            color: var(--muted);
+            line-height: 1.9;
+            justify-self: end;
+        }
+
+        .film-scene {
+            position: relative;
+            min-height: 780px;
+            overflow: hidden;
+            border-radius: 44px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            box-shadow: var(--shadow);
+        }
+
+        .film-main {
+            position: absolute;
+            inset: 0 23% 0 0;
+            background-size: cover;
+            background-position: center;
+            filter: saturate(0.95) contrast(1.05);
+        }
+
+        .film-main::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(4, 7, 15, 0.08), rgba(4, 7, 15, 0.58) 72%, rgba(4, 7, 15, 0.9));
+        }
+
+        .film-overlay-copy {
+            position: absolute;
+            left: 48px;
+            bottom: 48px;
+            z-index: 2;
+            max-width: 460px;
+        }
+
+        .film-overlay-copy strong {
+            display: block;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 4vw, 3.6rem);
+            margin-top: 10px;
+        }
+
+        .film-overlay-copy p {
+            margin-top: 16px;
+            color: rgba(244,247,255,0.8);
+            line-height: 1.85;
+        }
+
+        .film-side {
+            position: absolute;
+            top: 44px;
+            right: 44px;
+            width: 30%;
+            min-width: 280px;
+            display: grid;
+            gap: 20px;
+            z-index: 2;
+        }
+
+        .film-card {
+            min-height: 250px;
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: var(--shadow);
+            background-size: cover;
+            background-position: center;
+        }
+
+        .film-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(8, 10, 20, 0.06), rgba(8, 10, 20, 0.82));
+        }
+
+        .film-card-content {
+            position: absolute;
+            left: 24px;
+            right: 24px;
+            bottom: 24px;
+            z-index: 1;
+        }
+
+        .film-card-content h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .film-card-content p {
+            color: rgba(244,247,255,0.76);
+            line-height: 1.7;
+        }
+
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.88), rgba(255,255,255,0.04) 22%, transparent 56%);
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 80px rgba(116,245,255,0.16);
+        }
+
+        .orb-a {
+            width: 130px;
+            height: 130px;
+            top: 90px;
+            left: 42%;
+            animation: floatA 8s ease-in-out infinite;
+        }
+
+        .orb-b {
+            width: 90px;
+            height: 90px;
+            bottom: 90px;
+            left: 56%;
+            animation: floatB 9s ease-in-out infinite;
+        }
+
+        .studio-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 22px;
+            margin-top: 28px;
+        }
+
+        .studio-stats div {
+            border-top: 1px solid rgba(255,255,255,0.12);
+            padding-top: 18px;
+        }
+
+        .studio-stats strong {
+            display: block;
+            font-size: 1.35rem;
+            margin-bottom: 6px;
+        }
+
+        .services-rail {
+            display: grid;
+            gap: 28px;
+        }
+
+        .service-line {
+            display: grid;
+            grid-template-columns: 110px 1fr 1.3fr;
+            gap: 28px;
+            align-items: start;
+            padding: 28px 0;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .service-line:last-child {
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .service-line .index {
+            color: rgba(255,255,255,0.35);
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+        }
+
+        .service-line h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.8rem, 3vw, 3rem);
+            line-height: 0.95;
+        }
+
+        .service-line p {
+            color: var(--muted);
+            line-height: 1.9;
+            max-width: 700px;
+        }
+
+        .vision-stage {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 36px;
+            align-items: stretch;
+        }
+
+        .vision-panel {
+            position: relative;
+            min-height: 560px;
+            border-radius: 40px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: var(--shadow);
+            background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+        }
+
+        .vision-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(116,245,255,0.16), transparent 20%),
+                radial-gradient(circle at 76% 20%, rgba(123,97,255,0.2), transparent 24%),
+                linear-gradient(180deg, rgba(7,10,19,0.2), rgba(7,10,19,0.88));
+        }
+
+        .vision-copy {
+            position: absolute;
+            left: 40px;
+            bottom: 40px;
+            right: 40px;
+            z-index: 1;
+        }
+
+        .vision-copy h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 3vw, 3rem);
+            margin-bottom: 16px;
+        }
+
+        .vision-copy p,
+        .vision-copy blockquote {
+            max-width: 620px;
+            color: rgba(244,247,255,0.8);
+            line-height: 1.85;
+        }
+
+        .vision-copy blockquote {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: var(--text);
+        }
+
+        .contact-panel {
+            border-radius: 34px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+            padding: 34px;
+            box-shadow: var(--shadow);
+        }
+
         .section-head {
             display: flex;
             align-items: end;
@@ -810,9 +1180,8 @@
 
         @media (max-width: 1100px) {
             .hero-grid,
-            .showcase-grid,
-            .split-band,
-            .services-grid {
+            .studio-intro,
+            .vision-stage {
                 grid-template-columns: 1fr;
             }
 
@@ -821,6 +1190,37 @@
             }
 
             .hero-meta,
+            .studio-stats,
+            .film-side,
+            .service-line {
+                grid-template-columns: 1fr;
+            }
+
+            .film-scene {
+                min-height: 980px;
+            }
+
+            .film-main {
+                inset: 0;
+            }
+
+            .film-side {
+                position: absolute;
+                left: 24px;
+                right: 24px;
+                bottom: 24px;
+                top: auto;
+                width: auto;
+                min-width: 0;
+            }
+
+            .service-line {
+                gap: 12px;
+            }
+
+            .services-grid,
+            .showcase-grid,
+            .split-band,
             .showcase-stats {
                 grid-template-columns: 1fr;
             }
@@ -868,7 +1268,7 @@
             .ring-c { width: 430px; height: 430px; }
 
             .stage-panel {
-                width: 230px;
+                width: 250px;
                 border-radius: 24px;
             }
 
@@ -881,14 +1281,33 @@
             .card-2 { left: 0; bottom: 100px; width: 200px; }
             .card-3 { right: 6px; bottom: 0; width: 170px; }
 
-            .section {
+            .section,
+            .studio-section {
                 padding: 80px 0;
             }
 
             .section-head,
-            .footer-inner {
+            .footer-inner,
+            .studio-intro {
                 flex-direction: column;
                 align-items: flex-start;
+            }
+
+            .film-scene {
+                min-height: 920px;
+                border-radius: 28px;
+            }
+
+            .film-overlay-copy {
+                left: 24px;
+                right: 24px;
+                bottom: 24px;
+            }
+
+            .vision-copy {
+                left: 24px;
+                right: 24px;
+                bottom: 24px;
             }
         }
     </style>
@@ -925,15 +1344,15 @@
                     <div class="hero-meta">
                         <div class="meta-card">
                             <strong>2019</strong>
-                            <span>Official launch and studio foundation</span>
+                            <span>Studio launched in Oman</span>
                         </div>
                         <div class="meta-card">
-                            <strong>3 Core</strong>
-                            <span>Animation, video production, digital art</span>
+                            <strong>3 Worlds</strong>
+                            <span>Animation, production, digital art</span>
                         </div>
                         <div class="meta-card">
-                            <strong>Regional</strong>
-                            <span>Creative stories crafted for Oman and beyond</span>
+                            <strong>Luxury</strong>
+                            <span>Visual storytelling with depth and atmosphere</span>
                         </div>
                     </div>
                 </div>
@@ -946,6 +1365,8 @@
                     <div class="stage-panel">
                         <div class="panel-screen" id="heroImagePanel" style="background-size:cover;background-position:center;"></div>
                     </div>
+                    <div class="floating-orb orb-a"></div>
+                    <div class="floating-orb orb-b"></div>
                     <article class="floating-card card-1 layer-card">
                         <small id="heroCard1Label"></small>
                         <h3 id="heroCard1Title"></h3>
@@ -982,29 +1403,21 @@
             </div>
         </div>
 
-        <section class="section shell reveal" id="work">
-            <div class="section-head">
+        <section class="studio-section shell reveal" id="work">
+            <div class="studio-intro">
                 <div>
-                    <span class="section-kicker">Featured Work</span>
+                    <span class="studio-label">Featured Work</span>
                     <h2 id="featuredHeading"></h2>
                 </div>
                 <p id="featuredText"></p>
             </div>
-            <div class="showcase-grid">
-                <div class="showcase-main layer-card">
-                    <div class="showcase-top">
-                        <div>
-                            <span class="showcase-badge" id="featuredMainBadge"></span>
-                        </div>
-                        <a class="pill-btn" href="#contact">Discuss Similar Work</a>
-                    </div>
-                    <div class="showcase-screen" id="featuredMainImage" style="background-size:cover;background-position:center;">
-                        <div class="screen-label">
-                            <span id="featuredMainLabel"></span>
-                            <strong id="featuredMainTitle"></strong>
-                        </div>
-                    </div>
-                    <div class="showcase-stats">
+            <div class="film-scene layer-card">
+                <div class="film-main" id="featuredMainImage"></div>
+                <div class="film-overlay-copy">
+                    <span class="showcase-badge" id="featuredMainBadge"></span>
+                    <strong id="featuredMainTitle"></strong>
+                    <p id="featuredMainLabel"></p>
+                    <div class="studio-stats">
                         <div>
                             <strong id="featuredStat1Title"></strong>
                             <span id="featuredStat1Text"></span>
@@ -1019,73 +1432,62 @@
                         </div>
                     </div>
                 </div>
-                <div class="showcase-side">
-                    <article class="showcase-side-card layer-card" id="side1ImageCard" style="background-size:cover;background-position:center;">
-                        <h3 id="side1Title"></h3>
-                        <p id="side1Text"></p>
-                        <div class="shape"></div>
+                <div class="film-side">
+                    <article class="film-card layer-card" id="side1ImageCard">
+                        <div class="film-card-content">
+                            <h3 id="side1Title"></h3>
+                            <p id="side1Text"></p>
+                        </div>
                     </article>
-                    <article class="showcase-side-card layer-card" id="side2ImageCard" style="background-size:cover;background-position:center;">
-                        <h3 id="side2Title"></h3>
-                        <p id="side2Text"></p>
-                        <div class="shape"></div>
+                    <article class="film-card layer-card" id="side2ImageCard">
+                        <div class="film-card-content">
+                            <h3 id="side2Title"></h3>
+                            <p id="side2Text"></p>
+                        </div>
                     </article>
                 </div>
             </div>
         </section>
 
-        <section class="section shell reveal" id="services">
-            <div class="section-head">
+        <section class="studio-section shell reveal" id="services">
+            <div class="studio-intro">
                 <div>
-                    <span class="section-kicker">Core Services</span>
-                    <h2>Built to feel like a studio with visual power, not a generic agency template.</h2>
+                    <span class="studio-label">Creative Direction</span>
+                    <h2>Built like a digital studio reel, not a product catalog.</h2>
                 </div>
-                <p>Each service is positioned as a premium creative capability with a stronger visual identity and deeper interaction language.</p>
+                <p>Each capability is presented as a creative discipline with mood, movement, and authored visual intent rather than boxed service cards.</p>
             </div>
-            <div class="services-grid">
-                <article class="service-box layer-card">
-                    <span class="service-index">01 / Animation</span>
+            <div class="services-rail">
+                <article class="service-line">
+                    <span class="index">01</span>
                     <h3 id="service1Title"></h3>
                     <p id="service1Text"></p>
-                    <div class="service-tags">
-                        <span>Look Dev</span>
-                        <span>Environment Design</span>
-                        <span>Motion Timing</span>
-                    </div>
                 </article>
-                <article class="service-box layer-card">
-                    <span class="service-index">02 / Production</span>
+                <article class="service-line">
+                    <span class="index">02</span>
                     <h3 id="service2Title"></h3>
                     <p id="service2Text"></p>
-                    <div class="service-tags">
-                        <span>Editing</span>
-                        <span>Creative Direction</span>
-                        <span>Broadcast Ready</span>
-                    </div>
                 </article>
-                <article class="service-box layer-card">
-                    <span class="service-index">03 / Art</span>
+                <article class="service-line">
+                    <span class="index">03</span>
                     <h3 id="service3Title"></h3>
                     <p id="service3Text"></p>
-                    <div class="service-tags">
-                        <span>Concept Art</span>
-                        <span>Illustration</span>
-                        <span>Visual Identity</span>
-                    </div>
                 </article>
             </div>
         </section>
 
-        <section class="section shell reveal" id="vision">
-            <div class="split-band">
-                <article class="quote-box layer-card">
-                    <span class="section-kicker">Studio Vision</span>
-                    <h3 id="visionTitle"></h3>
-                    <p id="visionText"></p>
-                    <blockquote id="quote"></blockquote>
+        <section class="studio-section shell reveal" id="vision">
+            <div class="vision-stage">
+                <article class="vision-panel layer-card">
+                    <div class="vision-copy">
+                        <span class="studio-label">Studio Vision</span>
+                        <h3 id="visionTitle"></h3>
+                        <p id="visionText"></p>
+                        <blockquote id="quote"></blockquote>
+                    </div>
                 </article>
-                <article class="contact-box layer-card" id="contact">
-                    <span class="section-kicker">Contact</span>
+                <article class="contact-panel" id="contact">
+                    <span class="studio-label">Contact</span>
                     <h3 id="contactTitle"></h3>
                     <p id="contactText"></p>
                     <div class="contact-list">
