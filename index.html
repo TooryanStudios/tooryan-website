@@ -3,408 +3,610 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tooryan Studios | Digital Animation & Visual Art</title>
+    <title>Tooryan Studios | Digital Animation</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #030305;
-            --text: #f0f0f5;
-            --muted: #8b8b9e;
-            --accent: #e5b05c;
-            --glass: rgba(255,255,255,0.03);
-            --glass-border: rgba(255,255,255,0.06);
-            --space: clamp(2rem, 5vw, 6rem);
+            --bg: #07050f;
+            --text: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border: rgba(255, 255, 255, 0.08);
+            --card-bg: rgba(20, 15, 35, 0.4);
+            --primary-gradient: linear-gradient(135deg, #d864ff 0%, #7d35ff 100%);
+            --text-gradient: linear-gradient(to right, #ffffff 20%, #d864ff 50%, #7d35ff 80%);
+            --glow-purple: rgba(125, 53, 255, 0.5);
+            --glow-pink: rgba(216, 100, 255, 0.5);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
             background-color: var(--bg);
             color: var(--text);
             overflow-x: hidden;
             line-height: 1.6;
         }
 
-        #canvas-container {
+        /* Abstract Glows */
+        .glow-bg {
             position: fixed;
-            top: 0;
-            left: 0;
             width: 100vw;
             height: 100vh;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.6;
-        }
-
-        .noise {
-            position: fixed;
-            inset: 0;
-            z-index: 100;
-            pointer-events: none;
-            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noise"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noise)" opacity="0.04"/%3E%3C/svg%3E');
-        }
-
-        .shell {
-            width: min(1400px, calc(100% - 40px));
-            margin: 0 auto;
-            position: relative;
-            z-index: 10;
-        }
-
-        /* Navigation */
-        nav {
-            position: fixed;
             top: 0;
-            width: 100%;
-            z-index: 50;
-            mix-blend-mode: difference;
-            padding: 2rem 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .glow-bg::before, .glow-bg::after {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.4;
         }
 
-        .nav-inner {
+        .glow-bg::before {
+            top: -100px;
+            left: 10%;
+            background: radial-gradient(circle, var(--glow-purple) 0%, transparent 70%);
+        }
+
+        .glow-bg::after {
+            top: 40%;
+            right: -100px;
+            background: radial-gradient(circle, var(--glow-pink) 0%, transparent 70%);
+        }
+
+        /* Ribbon */
+        .hero-ribbon {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 1200px;
+            height: 500px;
+            background: radial-gradient(ellipse at center, rgba(125, 53, 255, 0.15) 0%, transparent 70%);
+            z-index: -1;
+            border-radius: 50%;
+            filter: blur(40px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navbar */
+        nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 24px 0;
+            border-bottom: 1px solid var(--border);
         }
 
         .logo {
             font-size: 1.5rem;
-            font-weight: 900;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: white;
+            font-weight: 800;
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             text-decoration: none;
         }
 
-        .menu {
+        .nav-links {
             display: flex;
-            gap: 3rem;
+            gap: 32px;
         }
 
-        .menu a {
-            color: white;
+        .nav-links a {
+            color: var(--text-muted);
             text-decoration: none;
             font-size: 0.9rem;
             font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 20px rgba(125, 53, 255, 0.3);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(125, 53, 255, 0.5);
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
         /* Hero */
         .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding-top: 10vh;
+            text-align: center;
+            padding: 120px 0 80px;
+            position: relative;
         }
 
-        .hero-content {
-            max-width: 900px;
-            mix-blend-mode: difference;
-        }
-
-        #heroEyebrow {
-            display: block;
-            font-size: 1rem;
-            font-weight: 500;
-            letter-spacing: 0.2em;
+        .hero-eyebrow {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(125, 53, 255, 0.1);
+            border: 1px solid rgba(125, 53, 255, 0.3);
+            border-radius: 20px;
+            color: #d864ff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 24px;
             text-transform: uppercase;
-            margin-bottom: 2rem;
-            color: #fff;
+            letter-spacing: 1px;
         }
 
-        #heroTitle {
-            font-size: clamp(4rem, 10vw, 8rem);
-            font-weight: 900;
-            line-height: 0.9;
-            text-transform: uppercase;
-            margin-bottom: 2rem;
-            color: #fff;
+        .hero h1 {
+            font-size: clamp(3rem, 6vw, 5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -1px;
         }
 
-        #heroTitle .stroke {
-            color: transparent;
-            -webkit-text-stroke: 2px #fff;
+        .hero h1 span {
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        #heroDescription {
-            font-size: clamp(1.2rem, 2vw, 1.5rem);
-            font-weight: 300;
-            max-width: 600px;
-            color: #fff;
-        }
-
-        /* Editorial Typography Sections */
-        .editorial-section {
-            padding: var(--space) 0;
-            min-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .huge-text {
-            font-size: clamp(3rem, 6vw, 6rem);
-            font-weight: 700;
-            line-height: 1;
-            text-transform: uppercase;
-            max-width: 1200px;
-            margin-bottom: 3rem;
-        }
-
-        .huge-text span {
-            color: var(--accent);
-        }
-
-        /* Glass Panels */
-        .glass-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 4rem;
-        }
-
-        .glass-panel {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 3rem;
-            border-radius: 2px;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .glass-panel:hover {
-            transform: translateY(-10px);
-            background: rgba(255,255,255,0.05);
-        }
-
-        .glass-panel h3 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-        }
-
-        .glass-panel p {
-            color: var(--muted);
+        .hero p {
             font-size: 1.1rem;
-            font-weight: 300;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
         }
 
-        /* Immersive Showcase */
-        .showcase {
-            position: relative;
-            padding: var(--space) 0;
-        }
-
-        .showcase-header {
+        .hero-actions {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 4rem;
-            border-bottom: 1px solid var(--glass-border);
-            padding-bottom: 2rem;
+            justify-content: center;
+            gap: 16px;
         }
 
-        .showcase-large {
-            width: 100%;
-            height: 70vh;
-            background-size: cover;
-            background-position: center;
+        /* Section Titles */
+        .section-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Cards / Featured Work */
+        .work-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 120px;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
             position: relative;
-            display: flex;
-            align-items: flex-end;
-            padding: 4rem;
+            overflow: hidden;
+            transition: transform 0.3s, border-color 0.3s;
         }
 
-        .showcase-large::after {
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(216, 100, 255, 0.4);
+        }
+
+        .glass-card::before {
             content: '';
             position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(3,3,5,0.9), transparent);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top left, rgba(125, 53, 255, 0.1), transparent 50%);
+            pointer-events: none;
         }
 
-        .showcase-meta {
+        .card-image {
+            width: 100%;
+            height: 240px;
+            border-radius: 16px;
+            background-color: #1a1525;
+            margin-bottom: 24px;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .glass-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* Zig Zag Services */
+        .services-section {
+            padding: 80px 0;
             position: relative;
-            z-index: 2;
         }
 
-        .showcase-meta h3 {
+        .zigzag-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* The glowing connecting line */
+        .zigzag-line {
+            position: absolute;
+            top: 50px;
+            bottom: 50px;
+            left: 50%;
+            width: 2px;
+            background: linear-gradient(to bottom, rgba(216, 100, 255, 0), rgba(216, 100, 255, 0.5), rgba(125, 53, 255, 0.5), rgba(125, 53, 255, 0));
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-item:nth-child(even) {
+            flex-direction: row-reverse;
+            text-align: right;
+        }
+
+        .service-number {
             font-size: 4rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            line-height: 1;
-            margin-bottom: 1rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.05);
+            -webkit-text-stroke: 1px rgba(216, 100, 255, 0.3);
+            width: 120px;
+            text-align: center;
+        }
+
+        .service-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            flex: 1;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .service-item:nth-child(odd) .service-content {
+            box-shadow: -20px 20px 40px rgba(0,0,0,0.5);
+        }
+        
+        .service-item:nth-child(even) .service-content {
+            box-shadow: 20px 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .service-content h3 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+
+        .service-content p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Vision / Quote Box */
+        .vision-section {
+            padding: 100px 0;
+            text-align: center;
+        }
+
+        .vision-box {
+            background: linear-gradient(180deg, rgba(30, 20, 50, 0.5) 0%, rgba(15, 10, 25, 0.5) 100%);
+            border: 1px solid rgba(125, 53, 255, 0.3);
+            border-radius: 32px;
+            padding: 64px 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 0 40px rgba(125, 53, 255, 0.1);
+        }
+
+        .vision-box h2 {
+            font-size: 2rem;
+            margin-bottom: 24px;
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .vision-box p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 24px;
+        }
+
+        .vision-box blockquote {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: #fff;
+            border-left: 2px solid #d864ff;
+            padding-left: 16px;
+            margin-top: 32px;
         }
 
         /* Footer */
         footer {
-            border-top: 1px solid var(--glass-border);
-            padding: 4rem 0;
-            margin-top: var(--space);
+            background: linear-gradient(to top, rgba(125, 53, 255, 0.1), transparent);
+            padding: 80px 0 40px;
+            margin-top: 80px;
+            border-top: 1px solid var(--border);
+            text-align: center;
         }
 
-        .footer-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
+        .footer-cta {
+            margin-bottom: 60px;
         }
 
-        .contact-huge {
-            font-size: clamp(2rem, 4vw, 4rem);
-            font-weight: 700;
-            color: white;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 1rem;
+        .footer-cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
         }
 
-        .contact-huge:hover {
-            color: var(--accent);
+        .footer-cta p {
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border);
+            padding-top: 32px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
         }
 
         @media (max-width: 768px) {
-            .menu { display: none; }
-            .glass-panel { padding: 2rem; }
-            .showcase-large { padding: 2rem; height: 50vh; }
-            .showcase-meta h3 { font-size: 2.5rem; }
-            .footer-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2.5rem; }
+            .work-grid { grid-template-columns: 1fr; }
+            .zigzag-line { display: none; }
+            .service-item, .service-item:nth-child(even) {
+                flex-direction: column;
+                text-align: left;
+                gap: 16px;
+            }
+            .service-number { width: auto; text-align: left; font-size: 3rem; }
+            .footer-bottom { flex-direction: column; gap: 16px; }
         }
     </style>
 </head>
 <body>
-    <!-- WebGL Background -->
-    <div id="canvas-container"></div>
-    <div class="noise"></div>
+    <div class="glow-bg"></div>
 
-    <nav>
-        <div class="shell nav-inner">
+    <div class="container">
+        <nav>
             <a href="#" class="logo">Tooryan.</a>
-            <div class="menu">
+            <div class="nav-links">
                 <a href="#work">Work</a>
-                <a href="#services">Studio</a>
-                <a href="#contact">Contact</a>
+                <a href="#services">Services</a>
+                <a href="#vision">Vision</a>
                 <a href="./admin.html">Admin</a>
             </div>
-        </div>
-    </nav>
+            <a href="#contact" class="btn btn-primary">Start Project</a>
+        </nav>
 
-    <main>
-        <section class="hero shell">
-            <div class="hero-content">
-                <span id="heroEyebrow"></span>
-                <h1 id="heroTitle"></h1>
-                <p id="heroDescription"></p>
+        <section class="hero">
+            <div class="hero-ribbon"></div>
+            <span class="hero-eyebrow" id="heroEyebrow"></span>
+            <h1 id="heroTitle"></h1>
+            <p id="heroDescription"></p>
+            <div class="hero-actions">
+                <a href="#work" class="btn btn-primary">View Portfolio</a>
+                <a href="#services" class="btn btn-outline">Explore Services</a>
             </div>
         </section>
 
-        <section class="editorial-section shell" id="vision">
-            <h2 class="huge-text" id="visionTitle"></h2>
-            <p style="font-size: 1.5rem; max-width: 600px; color: var(--muted);" id="visionText"></p>
-        </section>
-
-        <section class="showcase shell" id="work">
-            <div class="showcase-header">
-                <h2 class="huge-text" style="margin:0;" id="featuredHeading"></h2>
-                <p style="max-width: 400px; color: var(--muted); text-align: right;" id="featuredText"></p>
+        <section id="work" style="padding-top: 60px;">
+            <div class="section-header">
+                <h2 id="featuredHeading"></h2>
+                <p id="featuredText"></p>
             </div>
             
-            <div class="showcase-large" id="featuredMainImage">
-                <div class="showcase-meta">
-                    <span style="color: var(--accent); letter-spacing: 0.2em; text-transform: uppercase;" id="featuredMainLabel"></span>
-                    <h3 id="featuredMainTitle"></h3>
-                    <div style="display: flex; gap: 2rem; margin-top: 2rem;">
-                        <div>
-                            <strong style="display: block;" id="featuredStat1Title"></strong>
-                            <span style="color: var(--muted);" id="featuredStat1Text"></span>
-                        </div>
-                        <div>
-                            <strong style="display: block;" id="featuredStat2Title"></strong>
-                            <span style="color: var(--muted);" id="featuredStat2Text"></span>
-                        </div>
+            <div class="work-grid">
+                <div class="glass-card">
+                    <div class="card-image" id="side1ImageCard"></div>
+                    <h3 id="side1Title"></h3>
+                    <p id="side1Text"></p>
+                </div>
+                <div class="glass-card">
+                    <div class="card-image" id="side2ImageCard"></div>
+                    <h3 id="side2Title"></h3>
+                    <p id="side2Text"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="services-section">
+            <div class="section-header">
+                <h2>Why Tooryan</h2>
+                <p>A specialized digital studio blending art, animation, and technical precision.</p>
+            </div>
+
+            <div class="zigzag-container">
+                <div class="zigzag-line"></div>
+                
+                <div class="service-item">
+                    <div class="service-number">01</div>
+                    <div class="service-content">
+                        <h3 id="service1Title"></h3>
+                        <p id="service1Text"></p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">02</div>
+                    <div class="service-content">
+                        <h3 id="service2Title"></h3>
+                        <p id="service2Text"></p>
+                    </div>
+                </div>
+
+                <div class="service-item">
+                    <div class="service-number">03</div>
+                    <div class="service-content">
+                        <h3 id="service3Title"></h3>
+                        <p id="service3Text"></p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="editorial-section shell" id="services">
-            <h2 class="huge-text">Digital<br><span>Disciplines.</span></h2>
-            <div class="glass-grid">
-                <div class="glass-panel">
-                    <h3 id="service1Title"></h3>
-                    <p id="service1Text"></p>
-                </div>
-                <div class="glass-panel">
-                    <h3 id="service2Title"></h3>
-                    <p id="service2Text"></p>
-                </div>
-                <div class="glass-panel">
-                    <h3 id="service3Title"></h3>
-                    <p id="service3Text"></p>
-                </div>
+        <section id="vision" class="vision-section">
+            <div class="vision-box">
+                <h2 id="visionTitle"></h2>
+                <p id="visionText"></p>
+                <blockquote id="quote"></blockquote>
             </div>
         </section>
-    </main>
+    </div>
 
     <footer id="contact">
-        <div class="shell footer-grid">
-            <div>
-                <h2 style="font-size: 1.5rem; margin-bottom: 2rem; text-transform: uppercase; letter-spacing: 0.1em;" id="contactTitle"></h2>
-                <p style="color: var(--muted); margin-bottom: 3rem; max-width: 400px;" id="contactText"></p>
+        <div class="container">
+            <div class="footer-cta">
+                <h2 id="contactTitle"></h2>
+                <p id="contactText"></p>
+                <a href="#" id="emailCta" class="btn btn-primary">Join Our Studio</a>
             </div>
-            <div style="text-align: right;">
-                <a href="#" class="contact-huge" id="emailLink"></a>
-                <a href="#" class="contact-huge" id="phoneLink" style="color: var(--muted); font-size: clamp(1.5rem, 3vw, 3rem);"></a>
+            <div class="footer-bottom">
+                <div class="logo" style="font-size: 1.2rem;">Tooryan.</div>
+                <div style="display: flex; gap: 24px;">
+                    <a href="#" id="emailLink" style="color: var(--text-muted); text-decoration: none;"></a>
+                    <a href="#" id="phoneLink" style="color: var(--text-muted); text-decoration: none;"></a>
+                </div>
             </div>
         </div>
     </footer>
 
-    <!-- Three.js for 3D Background -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="./site-config.js"></script>
-    
     <script>
-        // Content Mapping
         const content = window.getTooryanContent();
+        
         const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value || ''; };
         const setHtml = (id, value) => { const el = document.getElementById(id); if (el) el.innerHTML = value || ''; };
         const setBg = (id, url) => { const el = document.getElementById(id); if (el && url) el.style.backgroundImage = `url('${url}')`; };
 
         setText('heroEyebrow', content.heroEyebrow);
-        setHtml('heroTitle', content.heroTitleHtml);
+        
+        let hTitle = content.heroTitleHtml || content.heroTitle;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = hTitle;
+        let plainText = tempDiv.textContent || tempDiv.innerText || "";
+        let words = plainText.split(' ');
+        if(words.length > 2) {
+            let lastWords = words.splice(-2).join(' ');
+            hTitle = `${words.join(' ')} <span>${lastWords}</span>`;
+        }
+        setHtml('heroTitle', hTitle);
+        
         setText('heroDescription', content.heroDescription);
-        setText('visionTitle', content.visionTitle);
-        setText('visionText', content.visionText);
         setText('featuredHeading', content.featuredHeading);
         setText('featuredText', content.featuredText);
-        setText('featuredMainLabel', content.featuredMainLabel);
-        setText('featuredMainTitle', content.featuredMainTitle);
-        setBg('featuredMainImage', content.featuredMainImage);
-        setText('featuredStat1Title', content.featuredStat1Title);
-        setText('featuredStat1Text', content.featuredStat1Text);
-        setText('featuredStat2Title', content.featuredStat2Title);
-        setText('featuredStat2Text', content.featuredStat2Text);
+        
+        setText('side1Title', content.side1Title);
+        setText('side1Text', content.side1Text);
+        setBg('side1ImageCard', content.side1Image);
+        
+        setText('side2Title', content.side2Title);
+        setText('side2Text', content.side2Text);
+        setBg('side2ImageCard', content.side2Image);
+
         setText('service1Title', content.service1Title);
         setText('service1Text', content.service1Text);
         setText('service2Title', content.service2Title);
         setText('service2Text', content.service2Text);
         setText('service3Title', content.service3Title);
         setText('service3Text', content.service3Text);
+        
+        setText('visionTitle', content.visionTitle);
+        setText('visionText', content.visionText);
+        setText('quote', `"${content.quote}"`);
+        
         setText('contactTitle', content.contactTitle);
         setText('contactText', content.contactText);
         
         const emailLink = document.getElementById('emailLink');
+        const emailCta = document.getElementById('emailCta');
         if(emailLink) {
             emailLink.textContent = content.email;
             emailLink.href = `mailto:${content.email}`;
+            if(emailCta) emailCta.href = `mailto:${content.email}`;
         }
         
         const phoneLink = document.getElementById('phoneLink');
@@ -412,101 +614,6 @@
             phoneLink.textContent = content.phone;
             phoneLink.href = `tel:${content.phone.replace(/\s+/g, '')}`;
         }
-
-        // 3D Background Setup
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
-
-        // Create abstract shapes
-        const objects = [];
-        const material = new THREE.MeshPhysicalMaterial({  
-            color: 0x111116,
-            metalness: 0.9,
-            roughness: 0.1,
-            envMapIntensity: 1.0,
-            clearcoat: 1.0,
-            clearcoatRoughness: 0.1,
-            wireframe: true
-        });
-
-        // Torus Knot
-        const geo1 = new THREE.TorusKnotGeometry(10, 3, 100, 16);
-        const mesh1 = new THREE.Mesh(geo1, material);
-        mesh1.position.set(15, 0, -20);
-        scene.add(mesh1);
-        objects.push({mesh: mesh1, speedX: 0.001, speedY: 0.002});
-
-        // Icosahedron
-        const geo2 = new THREE.IcosahedronGeometry(8, 0);
-        const mesh2 = new THREE.Mesh(geo2, material);
-        mesh2.position.set(-15, 10, -30);
-        scene.add(mesh2);
-        objects.push({mesh: mesh2, speedX: -0.002, speedY: 0.001});
-
-        // Lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-        scene.add(ambientLight);
-        
-        const pointLight1 = new THREE.PointLight(0xe5b05c, 2, 100);
-        pointLight1.position.set(10, 10, 10);
-        scene.add(pointLight1);
-
-        const pointLight2 = new THREE.PointLight(0x74f5ff, 2, 100);
-        pointLight2.position.set(-10, -10, 10);
-        scene.add(pointLight2);
-
-        camera.position.z = 20;
-
-        // Mouse Interaction
-        let mouseX = 0;
-        let mouseY = 0;
-        let targetX = 0;
-        let targetY = 0;
-
-        document.addEventListener('mousemove', (event) => {
-            mouseX = (event.clientX - window.innerWidth / 2);
-            mouseY = (event.clientY - window.innerHeight / 2);
-        });
-
-        // Scroll Interaction
-        let scrollY = 0;
-        window.addEventListener('scroll', () => {
-            scrollY = window.scrollY;
-        });
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // Animation Loop
-        function animate() {
-            requestAnimationFrame(animate);
-
-            targetX = mouseX * 0.001;
-            targetY = mouseY * 0.001;
-
-            objects.forEach(obj => {
-                obj.mesh.rotation.x += obj.speedX;
-                obj.mesh.rotation.y += obj.speedY;
-                
-                // Subtle mouse parallax
-                obj.mesh.position.x += (targetX * 5 - obj.mesh.position.x + (obj === objects[0] ? 15 : -15)) * 0.05;
-                obj.mesh.position.y += (-targetY * 5 - obj.mesh.position.y + (obj === objects[0] ? 0 : 10)) * 0.05;
-            });
-
-            // Camera scroll parallax
-            camera.position.y = -scrollY * 0.01;
-
-            renderer.render(scene, camera);
-        }
-
-        animate();
     </script>
 </body>
 </html>
