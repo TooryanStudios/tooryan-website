@@ -352,7 +352,7 @@
                             <div class="field">
                                 <label>Upload New Image</label>
                                 <input type="file" id="imageUpload" accept="image/*" style="padding:8px;">
-                                <button class="btn" id="uploadBtn" style="margin-top:8px; width:100%;">Upload to Server</button>
+                                <button type="button" class="btn" id="uploadBtn" style="margin-top:8px; width:100%;">Upload to Server</button>
                             </div>
                             <div class="field" style="margin-top:15px;">
                                 <label>Browse Uploaded Images</label>
@@ -796,7 +796,8 @@
             }
         }
 
-        document.getElementById('uploadBtn').addEventListener('click', async () => {
+        document.getElementById('uploadBtn').addEventListener('click', async (event) => {
+            event.preventDefault();
             const fileInput = document.getElementById('imageUpload');
             if(!fileInput.files[0]) {
                 alert('Please select an image first.');
