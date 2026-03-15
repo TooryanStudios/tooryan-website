@@ -288,6 +288,7 @@
             display: flex;
             align-items: center;
             overflow: hidden;
+            position: relative;
         }
         .horizontal-container {
             display: flex;
@@ -297,6 +298,36 @@
             align-items: center;
             will-change: transform;
             width: max-content;
+        }
+        .slides-parallax {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+            mix-blend-mode: screen;
+        }
+        .slide-layer {
+            position: absolute;
+            top: 0;
+            left: -20%;
+            width: 140%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(212,175,60,0.15), rgba(4,4,4,0));
+            filter: blur(12px);
+        }
+        .slide-layer:nth-child(2) {
+            top: 10%;
+            height: 60%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0) 70%);
+            filter: blur(24px);
+        }
+        .slide-layer:nth-child(3) {
+            top: 20%;
+            height: 45%;
+            background: radial-gradient(circle, rgba(212, 175, 60, 0.35) 0%, rgba(0,0,0,0) 60%);
+            mix-blend-mode: screen;
+            opacity: 0.95;
         }
         .work-card {
             width: 60vw;
@@ -385,6 +416,27 @@
             justify-content: center;
             transform-origin: top center;
             box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            position: relative;
+        }
+        .service-card-media {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.18;
+            filter: saturate(1.2) blur(6px);
+        }
+        .service-card-content {
+            position: relative;
+            z-index: 2;
+        }
+        .service-card-subtitle {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
         }
         .service-card h3 {
             font-size: 2.2rem;
@@ -542,35 +594,16 @@
     <!-- 3. HORIZONTAL WORKS -->
     <section class="horizontal-wrapper" id="works-wrapper">
         <div class="horizontal-sticky">
+            <div class="slides-parallax">
+                <div class="slide-layer layer-one" data-speed="0.3"></div>
+                <div class="slide-layer layer-two" data-speed="0.6"></div>
+                <div class="slide-layer layer-three" data-speed="0.9"></div>
+            </div>
             <div class="horizontal-container" id="works-container">
                 
                 <div class="h-title-section">
                     <h2 id="featuredHeading"></h2>
                     <p id="featuredText"></p>
-                </div>
-
-                <div class="work-card hover-target">
-                    <img id="featuredMainImage" src="" alt="Featured Work 1">
-                    <div class="work-info">
-                        <p id="featuredMainLabel" style="color:var(--accent); font-weight:bold; margin-bottom:10px;"></p>
-                        <h3 id="featuredMainTitle"></h3>
-                    </div>
-                </div>
-
-                <div class="work-card hover-target">
-                    <img id="side1Image" src="" alt="Work 2">
-                    <div class="work-info">
-                        <h3 id="side1Title"></h3>
-                        <p id="side1Text"></p>
-                    </div>
-                </div>
-
-                <div class="work-card hover-target">
-                    <img id="side2Image" src="" alt="Work 3">
-                    <div class="work-info">
-                        <h3 id="side2Title"></h3>
-                        <p id="side2Text"></p>
-                    </div>
                 </div>
 
             </div>
@@ -582,20 +615,7 @@
         <div class="services-header">
             <h2>EXPERTISE</h2>
         </div>
-        <div class="cards-container">
-            <div class="service-card hover-target card-1">
-                <h3 id="service1Title"></h3>
-                <p id="service1Text"></p>
-            </div>
-            <div class="service-card hover-target card-2">
-                <h3 id="service2Title"></h3>
-                <p id="service2Text"></p>
-            </div>
-            <div class="service-card hover-target card-3">
-                <h3 id="service3Title"></h3>
-                <p id="service3Text"></p>
-            </div>
-        </div>
+        <div class="cards-container" id="servicesContainer"></div>
     </section>
 
     <!-- 5. FOOTER -->
@@ -617,48 +637,98 @@
         async function initSite() {
             // --- 1. Load Content from site-config.js (Async now) ---
             const content = await window.getTooryanContent();
-            
-            // Map data to DOM
+
             document.getElementById('heroEyebrow').innerText = content.heroEyebrow;
             document.getElementById('heroTitle').innerHTML = content.heroTitleHtml;
             document.getElementById('heroDescription').innerText = content.heroDescription;
             document.getElementById('heroImage').src = content.heroImage;
 
-            // Vision
             const visionTitleEl = document.getElementById('visionTitle');
-            // Split text for scrubbing effect
             const words = content.visionTitle.split(' ');
             visionTitleEl.innerHTML = words.map(w => `<span>${w} </span>`).join('');
             document.getElementById('visionText').innerText = content.visionText;
 
-            // Floating Parallax Objects
-            if(document.getElementById('floatingImg1')) document.getElementById('floatingImg1').src = content.floatingImg1;
-            if(document.getElementById('floatingImg2')) document.getElementById('floatingImg2').src = content.floatingImg2;
-            if(document.getElementById('floatingImg3')) document.getElementById('floatingImg3').src = content.floatingImg3;
+            ['floatingImg1','floatingImg2','floatingImg3'].forEach((id) => {
+                const el = document.getElementById(id);
+                if(el && content[id]) { el.src = content[id]; }
+            });
 
-            // Works
             document.getElementById('featuredHeading').innerText = content.featuredHeading;
             document.getElementById('featuredText').innerText = content.featuredText;
-            
-            document.getElementById('featuredMainImage').src = content.featuredMainImage;
-            document.getElementById('featuredMainLabel').innerText = content.featuredMainLabel;
-            document.getElementById('featuredMainTitle').innerText = content.featuredMainTitle;
 
-            document.getElementById('side1Image').src = content.side1Image;
-            document.getElementById('side1Title').innerText = content.side1Title;
-            document.getElementById('side1Text').innerText = content.side1Text;
+            const worksContainer = document.getElementById('works-container');
+            const slides = Array.isArray(content.featuredSlides) ? content.featuredSlides : [];
+            slides.forEach((slide) => {
+                const card = document.createElement('div');
+                card.className = 'work-card hover-target';
+                const img = document.createElement('img');
+                img.src = slide.image || '';
+                img.alt = slide.title || 'Featured Work';
+                card.appendChild(img);
 
-            document.getElementById('side2Image').src = content.side2Image;
-            document.getElementById('side2Title').innerText = content.side2Title;
-            document.getElementById('side2Text').innerText = content.side2Text;
+                const info = document.createElement('div');
+                info.className = 'work-info';
+                if(slide.badge) {
+                    const badge = document.createElement('p');
+                    badge.style.color = 'var(--accent)';
+                    badge.style.fontWeight = 'bold';
+                    badge.style.marginBottom = '10px';
+                    badge.textContent = slide.badge;
+                    info.appendChild(badge);
+                }
+                if(slide.label) {
+                    const label = document.createElement('p');
+                    label.style.color = 'var(--accent)';
+                    label.style.fontWeight = 'bold';
+                    label.style.marginBottom = '10px';
+                    label.textContent = slide.label;
+                    info.appendChild(label);
+                }
+                if(slide.title) {
+                    const titleEl = document.createElement('h3');
+                    titleEl.textContent = slide.title;
+                    info.appendChild(titleEl);
+                }
+                if(slide.text) {
+                    const text = document.createElement('p');
+                    text.textContent = slide.text;
+                    info.appendChild(text);
+                }
+                card.appendChild(info);
+                worksContainer.appendChild(card);
+            });
 
-            // Services
-            document.getElementById('service1Title').innerText = content.service1Title;
-            document.getElementById('service1Text').innerText = content.service1Text;
-            document.getElementById('service2Title').innerText = content.service2Title;
-            document.getElementById('service2Text').innerText = content.service2Text;
-            document.getElementById('service3Title').innerText = content.service3Title;
-            document.getElementById('service3Text').innerText = content.service3Text;
+            const servicesContainer = document.getElementById('servicesContainer');
+            servicesContainer.innerHTML = '';
+            const services = Array.isArray(content.services) ? content.services : [];
+            services.forEach((service) => {
+                const card = document.createElement('div');
+                card.className = 'service-card hover-target';
+                const media = document.createElement('div');
+                media.className = 'service-card-media';
+                if(service.image) {
+                    media.style.backgroundImage = `url(${service.image})`;
+                }
+                const contentWrap = document.createElement('div');
+                contentWrap.className = 'service-card-content';
+                if(service.subtitle) {
+                    const subtitle = document.createElement('span');
+                    subtitle.className = 'service-card-subtitle';
+                    subtitle.textContent = service.subtitle;
+                    contentWrap.appendChild(subtitle);
+                }
+                const titleEl = document.createElement('h3');
+                titleEl.textContent = service.title || 'Service';
+                contentWrap.appendChild(titleEl);
+                if(service.text) {
+                    const text = document.createElement('p');
+                    text.textContent = service.text;
+                    contentWrap.appendChild(text);
+                }
+                card.appendChild(media);
+                card.appendChild(contentWrap);
+                servicesContainer.appendChild(card);
+            });
 
             // Footer
             document.getElementById('contactTitle').innerText = content.contactTitle;
@@ -799,6 +869,23 @@
                     scrub: 1,
                     invalidateOnRefresh: true
                 }
+            });
+
+            const parallaxLayers = gsap.utils.toArray('.slide-layer');
+            parallaxLayers.forEach((layer) => {
+                const speed = parseFloat(layer.dataset.speed) || 0.5;
+                gsap.to(layer, {
+                    xPercent: -30 * speed,
+                    yPercent: 10 * speed,
+                    ease: 'none',
+                    scrollTrigger: {
+                        trigger: '.horizontal-wrapper',
+                        start: 'top top',
+                        end: () => `+=${window.innerWidth * 1.2}`,
+                        scrub: true,
+                        invalidateOnRefresh: true
+                    }
+                });
             });
 
             // Stacking Cards (Services)

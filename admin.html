@@ -22,14 +22,31 @@
             font-family: 'Inter', sans-serif;
             background: linear-gradient(180deg, #07101f 0%, #091426 100%);
             color: var(--text);
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
         }
         .wrap {
-            width: min(1380px, calc(100% - 32px));
-            margin: 24px auto;
+            width: 100vw;
+            height: 100vh;
             display: grid;
-            grid-template-columns: 420px 1fr;
-            gap: 24px;
-            align-items: start;
+            grid-template-columns: 60% 30% 10%;
+            gap: 0;
+        }
+        .panel-column {
+            background: rgba(16, 26, 49, 0.92);
+            border: 1px solid var(--border);
+            border-radius: 0;
+            padding: 12px;
+            backdrop-filter: blur(14px);
+            position: relative;
+            min-height: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.02em;
         }
         .panel {
             background: rgba(16, 26, 49, 0.92);
@@ -42,12 +59,41 @@
             max-height: calc(100vh - 48px);
             overflow: auto;
         }
+        .side-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .side-menu button {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 10px 14px;
+            border-radius: 16px;
+            color: var(--text);
+            font-size: 0.9rem;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .side-menu button.active {
+            background: rgba(210,175,60,0.25);
+            border-color: rgba(210,175,60,0.5);
+        }
+        .section-pane {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .section-pane.active {
+            display: flex;
+        }
         .preview {
-            background: rgba(16, 26, 49, 0.72);
-            border: 1px solid var(--border);
-            border-radius: 28px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
             overflow: hidden;
-            min-height: calc(100vh - 48px);
+            height: 100%;
         }
         h1 {
             font-size: 1.8rem;
@@ -61,16 +107,17 @@
         .toolbar {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 22px;
+            gap: 10px;
+            margin-bottom: 16px;
+            font-size: 0.75rem;
         }
-        .btn {
+        .panel-column .btn {
             border: 1px solid var(--border);
             background: var(--panel-2);
             color: var(--text);
             border-radius: 999px;
             padding: 12px 16px;
-            font-weight: 600;
+            font-weight: 400;
             cursor: pointer;
         }
         .btn.primary {
@@ -79,16 +126,32 @@
             border-color: transparent;
         }
         .group {
-            margin-bottom: 18px;
-            padding: 18px;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.06);
+            margin-bottom: 14px;
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         .group h2 {
             font-size: 1rem;
             margin-bottom: 14px;
             color: var(--gold);
+            font-weight: 400;
+        }
+        .group.collapsed .group-body {
+            display: none;
+        }
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+        .group-header h2 {
+            margin: 0;
         }
         .field {
             display: grid;
@@ -96,7 +159,7 @@
             margin-bottom: 12px;
         }
         .field label {
-            font-size: 0.86rem;
+            font-size: 0.75rem;
             color: var(--muted);
         }
         input, textarea {
@@ -104,16 +167,149 @@
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(6, 11, 24, 0.88);
             color: var(--text);
-            border-radius: 14px;
-            padding: 12px 14px;
+            border-radius: 12px;
+            padding: 10px 12px;
             font: inherit;
         }
         textarea { min-height: 100px; resize: vertical; }
+        .array-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .array-entry {
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 16px;
+            background: rgba(255,255,255,0.02);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .array-entry-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .array-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .btn.mini {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 999px;
+        }
         iframe {
             width: 100%;
-            height: calc(100vh - 48px);
+            height: 100%;
             border: 0;
             background: white;
+        }
+        .panel-section {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            box-shadow: none;
+        }
+        .preview-column {
+            position: relative;
+            background: transparent;
+            border-radius: 0;
+            overflow: hidden;
+        }
+        .menu-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            padding: 12px 4px;
+            background: rgba(4,5,11,0.95);
+            border-radius: 0;
+            border: 1px solid rgba(255,255,255,0.08);
+            position: relative;
+        }
+        .menu-column::before {
+            display: none;
+        }
+        .menu-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+        .menu-controls .btn {
+            width: 100%;
+            background: rgba(16, 26, 49, 0.92);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--text);
+            padding: 12px 16px;
+            font-weight: 400;
+            cursor: pointer;
+            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+        }
+        .menu-controls .btn.primary {
+            background: linear-gradient(135deg, #d2a54c, #f2cf86);
+            color: #1f1608;
+            border-color: transparent;
+        }
+        .panel-column::-webkit-scrollbar,
+        .menu-column::-webkit-scrollbar,
+        .section-pane::-webkit-scrollbar {
+            width: 8px;
+        }
+        .panel-column::-webkit-scrollbar-track,
+        .menu-column::-webkit-scrollbar-track,
+        .section-pane::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+        }
+        .panel-column::-webkit-scrollbar-thumb,
+        .menu-column::-webkit-scrollbar-thumb,
+        .section-pane::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(210,175,60,0.6), rgba(210,175,60,0.2));
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .menu-column::before {
+            content: '';
+            position: absolute;
+            inset: 6px;
+            border: 1px solid rgba(210,175,60,0.25);
+            border-radius: 999px;
+            pointer-events: none;
+        }
+        .side-menu {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+        }
+        .side-menu button {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-size: 0.85rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .side-menu button.active {
+            color: var(--text);
+            font-weight: 700;
         }
         .hint {
             margin-top: 10px;
@@ -130,52 +326,90 @@
 </head>
 <body>
     <div class="wrap">
-        <aside class="panel">
-            <h1>Tooryan Admin</h1>
-            <p class="lead">Edit text and image URLs, save to server, and preview the website instantly.</p>
-            <div class="toolbar">
-                <button class="btn primary" id="saveBtn">Save changes</button>
-                <button class="btn" id="resetBtn">Reset defaults</button>
-                <button class="btn" id="refreshBtn">Refresh preview</button>
-            </div>
-            
-            <!-- Image Manager Section -->
-            <section class="group">
-                <h2>Image Manager</h2>
-                <div class="field">
-                    <label>Upload New Image</label>
-                    <input type="file" id="imageUpload" accept="image/*" style="padding:8px;">
-                    <button class="btn" id="uploadBtn" style="margin-top:8px; width:100%;">Upload to Server</button>
-                </div>
-                <div class="field" style="margin-top:15px;">
-                    <label>Browse Uploaded Images</label>
-                    <div id="imageGallery" style="display:flex; flex-wrap:wrap; gap:10px; max-height:200px; overflow-y:auto; background:rgba(0,0,0,0.5); padding:10px; border-radius:10px; border: 1px solid rgba(255,255,255,0.08);">
-                        <p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>
-                    </div>
-                    <p style="color:var(--muted); font-size:0.75rem; margin-top:5px;">Click an image to copy its URL, then paste it into any image field below.</p>
-                </div>
+        <div class="preview-column panel-section">
+            <section class="preview">
+                <iframe src="./index.html" id="previewFrame" title="Website preview"></iframe>
             </section>
-
-            <form id="adminForm"></form>
-            <p class="hint">Changes are saved directly to data.json on the server.</p>
-        </aside>
-        <section class="preview">
-            <iframe src="./index.html" id="previewFrame" title="Website preview"></iframe>
-        </section>
+        </div>
+        <div class="panel-column">
+            <h1>Tooryan Admin</h1>
+            <form id="adminForm">
+                <div id="sectionPanels">
+                    <div id="imageManagerPane" class="section-pane" data-section="image-manager">
+                        <section class="group">
+                            <h2>Image Manager</h2>
+                            <div class="field">
+                                <label>Upload New Image</label>
+                                <input type="file" id="imageUpload" accept="image/*" style="padding:8px;">
+                                <button class="btn" id="uploadBtn" style="margin-top:8px; width:100%;">Upload to Server</button>
+                            </div>
+                            <div class="field" style="margin-top:15px;">
+                                <label>Browse Uploaded Images</label>
+                                <div id="imageGallery" style="display:flex; flex-wrap:wrap; gap:10px; max-height:200px; overflow-y:auto; background:rgba(0,0,0,0.5); padding:10px; border-radius:10px; border: 1px solid rgba(255,255,255,0.08);">
+                                    <p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>
+                                </div>
+                                <p style="color:var(--muted); font-size:0.75rem; margin-top:5px;">Click an image to copy its URL, then paste it into any image field below.</p>
+                            </div>
+                        </section>
+                    </div>
+                    <div id="dynamicSectionPanels"></div>
+                </div>
+            </form>
+        </div>
+        <div class="menu-column">
+            <div class="menu-controls">
+                <button class="btn primary" id="saveBtn">Save</button>
+                <button class="btn" id="resetBtn">Reset</button>
+                <button class="btn" id="refreshBtn">Refresh</button>
+                <button class="btn" id="expandAllBtn">Expand</button>
+                <button class="btn" id="collapseAllBtn">Collapse</button>
+            </div>
+            <div class="side-menu" id="sideMenu"></div>
+        </div>
     </div>
     <script src="./site-config.js"></script>
     <script>
         const groups = {
             Hero: ['heroEyebrow', 'heroTitleHtml', 'heroDescription', 'heroImage', 'heroCard1Label', 'heroCard1Title', 'heroCard1Text', 'heroCard2Label', 'heroCard2Title', 'heroCard2Text', 'heroCard3Label', 'heroCard3Title', 'heroCard3Text'],
-            Featured: ['featuredHeading', 'featuredText', 'featuredMainBadge', 'featuredMainLabel', 'featuredMainTitle', 'featuredMainImage', 'featuredStat1Title', 'featuredStat1Text', 'featuredStat2Title', 'featuredStat2Text', 'featuredStat3Title', 'featuredStat3Text', 'side1Title', 'side1Text', 'side1Image', 'side2Title', 'side2Text', 'side2Image'],
-            Services: ['service1Title', 'service1Text', 'service2Title', 'service2Text', 'service3Title', 'service3Text'],
+            Featured: ['featuredHeading', 'featuredText'],
             Vision: ['visionTitle', 'visionText', 'floatingImg1', 'floatingImg2', 'floatingImg3', 'quote'],
             Contact: ['contactTitle', 'contactText', 'phone', 'email', 'location']
+        };
+
+        const arrayConfig = {
+            featuredSlides: {
+                label: 'Featured Slides',
+                singular: 'Slide',
+                titleKey: 'title',
+                fields: [
+                    { key: 'badge', label: 'Badge (optional)', type: 'text' },
+                    { key: 'label', label: 'Label (optional)', type: 'text' },
+                    { key: 'title', label: 'Title', type: 'text' },
+                    { key: 'subtitle', label: 'Subtitle (optional)', type: 'text' },
+                    { key: 'text', label: 'Body copy', type: 'textarea' },
+                    { key: 'image', label: 'Image URL', type: 'text' }
+                ],
+                defaultEntry: () => ({ title: '', text: '' })
+            },
+            services: {
+                label: 'Services',
+                singular: 'Service',
+                titleKey: 'title',
+                fields: [
+                    { key: 'title', label: 'Title', type: 'text' },
+                    { key: 'subtitle', label: 'Subtitle (optional)', type: 'text' },
+                    { key: 'text', label: 'Description', type: 'textarea' },
+                    { key: 'image', label: 'Image URL', type: 'text' }
+                ],
+                defaultEntry: () => ({ title: '', text: '' })
+            }
         };
 
         let content = {};
         const form = document.getElementById('adminForm');
         const previewFrame = document.getElementById('previewFrame');
+        const sideMenu = document.getElementById('sideMenu');
+        let autoFillTarget = null;
 
         function isLongField(key) {
             return key.toLowerCase().includes('text') || key.toLowerCase().includes('description') || key.toLowerCase().includes('html') || key === 'quote';
@@ -185,14 +419,170 @@
             return key.replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase());
         }
 
+        function setGroupExpanded(group, expand = true) {
+            if (!group) return;
+            const shouldExpand = typeof expand === 'boolean' ? expand : !group.classList.contains('collapsed');
+            group.classList.toggle('collapsed', !shouldExpand);
+            const toggleBtn = group.querySelector('.group-header .toggle-btn');
+            if (toggleBtn) {
+                toggleBtn.textContent = shouldExpand ? 'Collapse' : 'Expand';
+            }
+            return shouldExpand;
+        }
+
+        function createGroupHeader(title, group) {
+            const header = document.createElement('div');
+            header.className = 'group-header';
+            const heading = document.createElement('h2');
+            heading.textContent = title;
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'btn mini toggle-btn';
+            toggle.textContent = 'Collapse';
+            toggle.addEventListener('click', () => {
+                const isExpanded = !group.classList.contains('collapsed');
+                setGroupExpanded(group, !isExpanded);
+            });
+            header.appendChild(heading);
+            header.appendChild(toggle);
+            return header;
+        }
+
+        function attachAutoFillListeners(input, onValueUpdate) {
+            input.addEventListener('focus', () => {
+                autoFillTarget = input;
+            });
+            input.addEventListener('click', () => {
+                autoFillTarget = input;
+            });
+            if (typeof onValueUpdate === 'function') {
+                input.addEventListener('input', () => {
+                    onValueUpdate(input.value);
+                });
+            }
+        }
+
+        function createArrayEntry(config, entryData = {}) {
+            const card = document.createElement('div');
+            card.className = 'array-entry';
+            const header = document.createElement('div');
+            header.className = 'array-entry-title';
+            const title = document.createElement('span');
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn mini';
+            removeBtn.textContent = 'Remove';
+            removeBtn.addEventListener('click', () => {
+                card.remove();
+            });
+            header.appendChild(title);
+            header.appendChild(removeBtn);
+            card.appendChild(header);
+
+            const updateTitle = () => {
+                const titleField = card.querySelector(`[data-array-field="${config.titleKey}"]`);
+                title.textContent = titleField && titleField.value ? titleField.value : `${config.singular}`;
+            };
+
+            config.fields.forEach((field) => {
+                const fieldWrapper = document.createElement('div');
+                fieldWrapper.className = 'field';
+                const label = document.createElement('label');
+                label.textContent = field.label;
+                const input = field.type === 'textarea' ? document.createElement('textarea') : document.createElement('input');
+                if (input.tagName === 'INPUT') {
+                    input.type = field.type === 'textarea' ? 'text' : field.type;
+                }
+                input.dataset.arrayField = field.key;
+                input.value = entryData[field.key] || '';
+                fieldWrapper.appendChild(label);
+                fieldWrapper.appendChild(input);
+                attachAutoFillListeners(input, (value) => {
+                    if (field.key === config.titleKey) {
+                        updateTitle();
+                    }
+                });
+                card.appendChild(fieldWrapper);
+            });
+
+            updateTitle();
+            return card;
+        }
+
+        function createSectionPane(id) {
+            const pane = document.createElement('div');
+            pane.className = 'section-pane';
+            pane.dataset.section = id;
+            return pane;
+        }
+
+        function registerSideMenuEntry(id, label) {
+            const existing = sideMenu.querySelector(`[data-section-toggle="${id}"]`);
+            if (existing) return;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.dataset.sectionToggle = id;
+            btn.textContent = label;
+            btn.addEventListener('click', () => activateSection(id));
+            sideMenu.appendChild(btn);
+        }
+
+        function activateSection(id) {
+            document.querySelectorAll('.section-pane').forEach((pane) => {
+                pane.classList.toggle('active', pane.dataset.section === id);
+            });
+            sideMenu.querySelectorAll('button').forEach((btn) => {
+                btn.classList.toggle('active', btn.dataset.sectionToggle === id);
+            });
+        }
+
+        function createArraySection(arrayKey, config) {
+            const section = document.createElement('section');
+            section.className = 'group';
+            section.id = `${arrayKey}Section`;
+            const body = document.createElement('div');
+            body.className = 'group-body';
+            const header = createGroupHeader(config.label, section);
+
+            const list = document.createElement('div');
+            list.className = 'array-list';
+            const entries = (Array.isArray(content[arrayKey]) && content[arrayKey].length) ? content[arrayKey] : [config.defaultEntry()];
+            entries.forEach((entry) => {
+                list.append(createArrayEntry(config, entry));
+            });
+
+            const addBtn = document.createElement('button');
+            addBtn.type = 'button';
+            addBtn.className = 'btn mini';
+            addBtn.textContent = `Add ${config.singular}`;
+            addBtn.addEventListener('click', () => {
+                list.append(createArrayEntry(config, config.defaultEntry()));
+            });
+
+            body.appendChild(list);
+            body.appendChild(addBtn);
+            section.appendChild(header);
+            section.appendChild(body);
+            return section;
+        }
+
         function buildForm() {
-            form.innerHTML = '';
+            sideMenu.innerHTML = '';
+            const sectionOrder = [];
+            const panelsContainer = document.getElementById('dynamicSectionPanels');
+            panelsContainer.innerHTML = '';
+
+            registerSideMenuEntry('image-manager', 'Image Manager');
+            sectionOrder.push('image-manager');
+
             Object.entries(groups).forEach(([title, keys]) => {
+                const paneId = title.toLowerCase().replace(/\s+/g, '-');
+                const pane = createSectionPane(paneId);
                 const group = document.createElement('section');
                 group.className = 'group';
-                const heading = document.createElement('h2');
-                heading.textContent = title;
-                group.appendChild(heading);
+                const header = createGroupHeader(title, group);
+                const body = document.createElement('div');
+                body.className = 'group-body';
 
                 keys.forEach((key) => {
                     const field = document.createElement('div');
@@ -213,11 +603,47 @@
                     input.name = key;
                     input.value = content[key] || '';
                     field.appendChild(input);
-                    group.appendChild(field);
+                    attachAutoFillListeners(input);
+                    body.appendChild(field);
                 });
 
-                form.appendChild(group);
+                group.appendChild(header);
+                group.appendChild(body);
+                pane.appendChild(group);
+                registerSideMenuEntry(paneId, title);
+                sectionOrder.push(paneId);
+                panelsContainer.appendChild(pane);
             });
+
+            Object.entries(arrayConfig).forEach(([arrayKey, config]) => {
+                const pane = createSectionPane(arrayKey);
+                pane.appendChild(createArraySection(arrayKey, config));
+                registerSideMenuEntry(arrayKey, config.label);
+                sectionOrder.push(arrayKey);
+                panelsContainer.appendChild(pane);
+            });
+
+            const firstSection = sectionOrder[0];
+            if (firstSection) activateSection(firstSection);
+
+            const collapseAllBtn = document.createElement('button');
+            collapseAllBtn.type = 'button';
+            collapseAllBtn.className = 'btn mini';
+            collapseAllBtn.textContent = 'Collapse All';
+            collapseAllBtn.addEventListener('click', () => {
+                document.querySelectorAll('.group').forEach((group) => setGroupExpanded(group, false));
+            });
+
+            const expandAllBtn = document.createElement('button');
+            expandAllBtn.type = 'button';
+            expandAllBtn.className = 'btn mini';
+            expandAllBtn.textContent = 'Expand All';
+            expandAllBtn.addEventListener('click', () => {
+                document.querySelectorAll('.group').forEach((group) => setGroupExpanded(group, true));
+            });
+
+            panelsContainer.appendChild(collapseAllBtn);
+            panelsContainer.appendChild(expandAllBtn);
         }
 
         function collectForm() {
@@ -225,6 +651,20 @@
             new FormData(form).forEach((value, key) => {
                 data[key] = value;
             });
+
+            Object.keys(arrayConfig).forEach((arrayKey) => {
+                const section = document.getElementById(`${arrayKey}Section`);
+                if (!section) return;
+                const entries = Array.from(section.querySelectorAll('.array-entry'));
+                data[arrayKey] = entries.map((entry) => {
+                    const entryData = {};
+                    entry.querySelectorAll('[data-array-field]').forEach((input) => {
+                        entryData[input.dataset.arrayField] = input.value;
+                    });
+                    return entryData;
+                });
+            });
+
             return data;
         }
 
@@ -251,6 +691,7 @@
         document.getElementById('refreshBtn').addEventListener('click', refreshPreview);
 
         // --- Image Manager Logic ---
+
         async function loadGallery() {
             const gallery = document.getElementById('imageGallery');
             try {
@@ -304,8 +745,11 @@
                 });
                 const data = await res.json();
                 if(data.status === 'success') {
-                    alert('Upload successful! URL copied to clipboard.');
                     navigator.clipboard.writeText(data.url);
+                    if(autoFillTarget) {
+                        autoFillTarget.value = data.url;
+                    }
+                    alert('Upload successful! URL copied to clipboard.' + (autoFillTarget ? ' Pasted into the last-selected field.' : ' Click a field to automatically insert the URL.'));
                     fileInput.value = '';
                     loadGallery();
                 } else {
