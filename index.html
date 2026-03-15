@@ -213,7 +213,41 @@
             justify-content: center;
             padding: 5rem 2rem;
             background-color: #000;
+            position: relative;
+            overflow: hidden;
         }
+        
+        /* Floating Parallax Objects */
+        .floating-obj {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1;
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));
+            will-change: transform;
+        }
+        .float-1 {
+            width: 300px;
+            top: 10%;
+            left: 5%;
+            opacity: 0.7;
+            transform: rotate(-15deg);
+        }
+        .float-2 {
+            width: 450px;
+            bottom: -10%;
+            right: -5%;
+            opacity: 0.4;
+            transform: rotate(25deg);
+            filter: blur(5px); /* Creates depth of field */
+        }
+        .float-3 {
+            width: 200px;
+            top: 40%;
+            right: 15%;
+            opacity: 0.9;
+            transform: rotate(10deg);
+        }
+
         .vision-text {
             font-size: clamp(1.8rem, 4vw, 3.5rem);
             line-height: 1.2;
@@ -239,18 +273,15 @@
 
         /* 3. HORIZONTAL SCROLL - Featured Works */
         .horizontal-wrapper {
-            height: 300vh; /* Determines scroll length */
             position: relative;
+            background: #050505;
         }
         .horizontal-sticky {
-            position: sticky;
-            top: 0;
             height: 100vh;
             width: 100vw;
-            overflow: hidden;
             display: flex;
             align-items: center;
-            background: #050505;
+            overflow: hidden;
         }
         .horizontal-container {
             display: flex;
@@ -259,6 +290,7 @@
             height: 70vh;
             align-items: center;
             will-change: transform;
+            width: max-content;
         }
         .work-card {
             width: 60vw;
@@ -487,9 +519,15 @@
         </div>
     </section>
 
-    <!-- 2. VISION (Text Scrub) -->
-    <section class="vision">
-        <div style="display:flex; flex-direction:column; align-items:center;">
+    <!-- 2. VISION (Text Scrub & 3D Objects) -->
+    <section class="vision" id="vision-section">
+        
+        <!-- Floating 3D Objects -->
+        <img src="" id="floatingImg1" class="floating-obj float-1" data-speed="0.8" alt="3D Object 1">
+        <img src="" id="floatingImg2" class="floating-obj float-2" data-speed="-0.5" alt="3D Object 2">
+        <img src="" id="floatingImg3" class="floating-obj float-3" data-speed="1.2" alt="3D Object 3">
+
+        <div style="display:flex; flex-direction:column; align-items:center; position:relative; z-index:2;">
             <div class="vision-text" id="visionTitle"></div>
             <div class="vision-sub" id="visionText"></div>
         </div>
@@ -585,6 +623,11 @@
         const words = content.visionTitle.split(' ');
         visionTitleEl.innerHTML = words.map(w => `<span>${w} </span>`).join('');
         document.getElementById('visionText').innerText = content.visionText;
+
+        // Floating Parallax Objects
+        if(document.getElementById('floatingImg1')) document.getElementById('floatingImg1').src = content.floatingImg1;
+        if(document.getElementById('floatingImg2')) document.getElementById('floatingImg2').src = content.floatingImg2;
+        if(document.getElementById('floatingImg3')) document.getElementById('floatingImg3').src = content.floatingImg3;
 
         // Works
         document.getElementById('featuredHeading').innerText = content.featuredHeading;
@@ -720,6 +763,22 @@
             }
         });
 
+        // 3D Parallax Floating Objects
+        gsap.utils.toArray('.floating-obj').forEach(obj => {
+            const speed = parseFloat(obj.getAttribute('data-speed'));
+            gsap.to(obj, {
+                y: 400 * speed,
+                rotation: speed > 0 ? '+=30' : '-=30', // Rotate slightly as it moves
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: '.vision',
+                    start: 'top bottom',
+                    end: 'bottom top',
+                    scrub: 1
+                }
+            });
+        });
+
         // Horizontal Scroll
         const horizontalContainer = document.getElementById('works-container');
         const getScrollAmount = () => -(horizontalContainer.scrollWidth - window.innerWidth);
@@ -732,7 +791,6 @@
                 start: 'top top',
                 end: () => `+=${getScrollAmount() * -1}`,
                 pin: true,
-                animation: gsap.to(horizontalContainer, {x: getScrollAmount, ease: 'none'}),
                 scrub: 1,
                 invalidateOnRefresh: true
             }
