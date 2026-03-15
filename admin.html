@@ -798,15 +798,22 @@
             
             const file = fileInput.files[0];
             
-            // Try local server first
+            // Try local server first (with timeout)
+            let useGitHub = false;
             try {
                 const formData = new FormData();
                 formData.append('image', file);
                 
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+                
                 const res = await fetch('/api/upload', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
+                
                 const data = await res.json();
                 if(data.status === 'success') {
                     navigator.clipboard.writeText(data.url);
@@ -821,7 +828,13 @@
                 }
             } catch(e) {
                 // Local server not available, use GitHub Actions
-                console.log('Local server unavailable, using GitHub Actions...');
+                console.log('Local server unavailable, using GitHub Actions...', e.message);
+                useGitHub = true;
+            }
+            
+            if (!useGitHub) {
+                btn.textContent = 'Upload to Server';
+                return;
             }
             
             // Fallback to GitHub Actions workflow
