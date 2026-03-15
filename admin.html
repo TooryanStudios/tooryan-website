@@ -387,9 +387,10 @@
             const imagesListEl = document.getElementById('imagesList');
             if (!imagesListEl) return;
             imagesListEl.innerHTML = '<p>Scanning...</p>';
+            const cacheBuster = `t=${Date.now()}`;
 
             try {
-                const res = await fetch('/api/list_images');
+                const res = await fetch(`/api/list_images?${cacheBuster}`, { cache: 'no-store' });
                 const data = await res.json();
                 const images = Array.isArray(data?.images) ? data.images.map((img) => img.replace('./images/', '')) : [];
                 if (images.length > 0) {
@@ -399,7 +400,7 @@
                 imagesListEl.innerHTML = '<p style="color:var(--muted);">No images found</p>';
             } catch (err) {
                 try {
-                    const res = await fetch(imagesBasePath + 'manifest.json');
+                    const res = await fetch(`${imagesBasePath}manifest.json?${cacheBuster}`, { cache: 'no-store' });
                     const images = await res.json();
                     if (Array.isArray(images) && images.length > 0) {
                         imagesListEl.innerHTML = images.map((img) => `<div style="margin-bottom:4px;">• ${img}</div>`).join('');
