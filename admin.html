@@ -337,6 +337,12 @@
                 <p>Admin HTML: <strong id="adminPath">Loading...</strong></p>
                 <p>Data JSON: <strong id="dataPath">Loading...</strong></p>
                 <p>Site images: <strong id="imagesPath">Loading...</strong></p>
+                <div style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid rgba(255,255,255,0.08);">
+                    <p style="margin-bottom:8px; font-weight:500;">Images in folder:</p>
+                    <div id="imagesList" style="font-size:0.8rem; color:var(--muted); max-height:150px; overflow-y:auto;">
+                        <p>Scanning...</p>
+                    </div>
+                </div>
             </div>
             <form id="adminForm">
                 <div id="sectionPanels">
@@ -388,6 +394,27 @@
             document.getElementById('adminPath').textContent = adminPath;
             document.getElementById('dataPath').textContent = dataPath;
             document.getElementById('imagesPath').textContent = imagesPath;
+            
+            // Attempt to list images in the folder
+            const imagesListEl = document.getElementById('imagesList');
+            
+            // Try using the existing /api/list_images endpoint first
+            fetch('/api/list_images')
+                .then(res => res.json())
+                .then(images => {
+                    if (images && images.length > 0) {
+                        imagesListEl.innerHTML = images.map(img => 
+                            `<div style="margin-bottom:4px;">• ${img}</div>`
+                        ).join('');
+                    } else {
+                        imagesListEl.innerHTML = '<p style="color:var(--muted);">No images found or API unavailable</p>';
+                    }
+                })
+                .catch(err => {
+                    // If API fails, try to scan the images folder directly (works on some static hosts)
+                    imagesListEl.innerHTML = '<p style="color:var(--muted);">Unable to list images (requires server API)</p>';
+                    console.log('Image listing error:', err);
+                });
         })();
 
         const groups = {
