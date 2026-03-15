@@ -407,13 +407,26 @@
                             `<div style="margin-bottom:4px;">• ${img}</div>`
                         ).join('');
                     } else {
-                        imagesListEl.innerHTML = '<p style="color:var(--muted);">No images found or API unavailable</p>';
+                        imagesListEl.innerHTML = '<p style="color:var(--muted);">No images found</p>';
                     }
                 })
                 .catch(err => {
-                    // If API fails, try to scan the images folder directly (works on some static hosts)
-                    imagesListEl.innerHTML = '<p style="color:var(--muted);">Unable to list images (requires server API)</p>';
-                    console.log('Image listing error:', err);
+                    // If API fails, fall back to static manifest
+                    fetch(imagesPath + 'manifest.json')
+                        .then(res => res.json())
+                        .then(images => {
+                            if (images && images.length > 0) {
+                                imagesListEl.innerHTML = images.map(img => 
+                                    `<div style="margin-bottom:4px;">• ${img}</div>`
+                                ).join('');
+                            } else {
+                                imagesListEl.innerHTML = '<p style="color:var(--muted);">No images found</p>';
+                            }
+                        })
+                        .catch(manifestErr => {
+                            imagesListEl.innerHTML = '<p style="color:var(--muted);">Unable to list images (manifest not found)</p>';
+                            console.log('Image listing error:', err, manifestErr);
+                        });
                 });
         })();
 
