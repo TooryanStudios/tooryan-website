@@ -333,10 +333,10 @@
         </div>
         <div class="panel-column">
             <h1>Tooryan Admin</h1>
-            <div class="hint" style="margin-bottom:18px;">
-                <p>Admin HTML: <strong>c:/Projects/tooryan website/tooryan-website/admin.html</strong></p>
-                <p>Data JSON: <strong>c:/Projects/tooryan website/tooryan-website/data.json</strong></p>
-                <p>Site images: <strong>c:/Projects/tooryan website/tooryan-website/images/</strong></p>
+            <div class="hint" style="margin-bottom:18px;" id="pathInfo">
+                <p>Admin HTML: <strong id="adminPath">Loading...</strong></p>
+                <p>Data JSON: <strong id="dataPath">Loading...</strong></p>
+                <p>Site images: <strong id="imagesPath">Loading...</strong></p>
             </div>
             <form id="adminForm">
                 <div id="sectionPanels">
@@ -374,6 +374,22 @@
     </div>
     <script src="./site-config.js"></script>
     <script>
+        // Dynamically detect and display current paths
+        (function() {
+            const currentURL = window.location.href;
+            const origin = window.location.origin;
+            const pathname = window.location.pathname;
+            const baseDir = pathname.substring(0, pathname.lastIndexOf('/') + 1);
+            
+            const adminPath = currentURL;
+            const dataPath = origin + baseDir + 'data.json';
+            const imagesPath = origin + baseDir + 'images/';
+            
+            document.getElementById('adminPath').textContent = adminPath;
+            document.getElementById('dataPath').textContent = dataPath;
+            document.getElementById('imagesPath').textContent = imagesPath;
+        })();
+
         const groups = {
             Hero: ['heroEyebrow', 'heroTitleHtml', 'heroDescription', 'heroImage', 'heroCard1Label', 'heroCard1Title', 'heroCard1Text', 'heroCard2Label', 'heroCard2Title', 'heroCard2Text', 'heroCard3Label', 'heroCard3Title', 'heroCard3Text'],
             Featured: ['featuredHeading', 'featuredText'],
