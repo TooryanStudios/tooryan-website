@@ -1715,21 +1715,105 @@
             previewFrame.contentWindow.location.reload();
         }
 
+        function encodeBase64Utf8(value) {
+            const bytes = new TextEncoder().encode(String(value || ''));
+            let binary = '';
+            bytes.forEach((b) => {
+                binary += String.fromCharCode(b);
+            });
+            return btoa(binary);
+        }
+
+        async function saveContentViaGitHub(contentPayload, token) {
+            const githubHeaders = {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github+json',
+                'Content-Type': 'application/json'
+            };
+
+            const existingRes = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/data.json?ref=main', {
+                headers: githubHeaders
+            });
+            let sha = null;
+            if (existingRes.ok) {
+                const existingData = await existingRes.json();
+                sha = existingData.sha || null;
+            }
+
+            const payloadText = JSON.stringify(contentPayload, null, 2) + '\n';
+            const body = {
+                message: 'Update data.json from admin panel',
+                content: encodeBase64Utf8(payloadText),
+                branch: 'main'
+            };
+            if (sha) body.sha = sha;
+
+            const updateRes = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/data.json', {
+                method: 'PUT',
+                headers: githubHeaders,
+                body: JSON.stringify(body)
+            });
+            if (!updateRes.ok) {
+                const errorText = await updateRes.text();
+                throw new Error(errorText || 'Failed to publish data.json to GitHub.');
+            }
+            return true;
+        }
+
         document.getElementById('saveBtn').addEventListener('click', async () => {
             const saveBtn = document.getElementById('saveBtn');
+            const payload = collectForm();
             saveBtn.textContent = 'Saving...';
-            const result = await window.saveTooryanContent(collectForm());
+            const result = await window.saveTooryanContent(payload);
             saveBtn.textContent = 'Save changes';
-            refreshPreview();
             if (result?.status === 'local_only') {
-                await showDialog({
-                    title: 'Saved Locally',
-                    message: result?.message || 'Could not connect to the save API. Changes were saved locally only.',
-                    buttons: [{ id: 'ok', label: 'OK', className: 'btn mini' }]
+                const choice = await showDialog({
+                    title: 'Save API Unavailable',
+                    message: `${result?.message || 'Could not connect to save API. Changes were saved locally only.'}\n\nPublish this change to GitHub now?`,
+                    buttons: [
+                        { id: 'local-only', label: 'Keep Local Only', className: 'btn mini' },
+                        { id: 'publish', label: 'Publish to GitHub', className: 'btn mini' }
+                    ]
                 });
+                if (choice.action === 'publish') {
+                    const token = await getGitHubToken();
+                    if (!token) {
+                        showToast('GitHub token is required to publish changes.', 'warning');
+                        refreshPreview();
+                        return;
+                    }
+                    saveBtn.textContent = 'Publishing...';
+                    try {
+                        await saveContentViaGitHub(payload, token);
+                        await showDialog({
+                            title: 'Published',
+                            message: 'Changes were pushed to GitHub successfully.\nDeployment should publish to live site shortly.',
+                            buttons: [{ id: 'ok', label: 'OK', className: 'btn mini' }]
+                        });
+                    } catch (publishErr) {
+                        const publishMessage = String(publishErr?.message || publishErr);
+                        if (publishMessage.includes('Bad credentials')) {
+                            localStorage.removeItem('github_token');
+                        }
+                        await showDialog({
+                            title: 'Publish Failed',
+                            message: publishMessage,
+                            buttons: [{ id: 'ok', label: 'OK', className: 'btn mini' }]
+                        });
+                    } finally {
+                        saveBtn.textContent = 'Save changes';
+                    }
+                } else {
+                    await showDialog({
+                        title: 'Saved Locally',
+                        message: 'Changes remain only in this browser until published.',
+                        buttons: [{ id: 'ok', label: 'OK', className: 'btn mini' }]
+                    });
+                }
             } else {
                 showToast('Changes saved.', 'success');
             }
+            refreshPreview();
         });
 
         document.getElementById('resetBtn').addEventListener('click', async () => {
