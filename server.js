@@ -89,21 +89,13 @@ app.post('/api/delete_image', (req, res) => {
 
 // API: List Images
 app.get('/api/list_images', (req, res) => {
-    fs.readdir('./images/', (err, files) => {
-        if (err) return res.status(500).json({ status: 'error', message: err.message });
-        
-        const images = files
-            .filter(f => !f.startsWith('.'))
-            .filter(f => {
-                const ext = path.extname(f).toLowerCase();
-                return IMAGE_EXTENSIONS.has(ext);
-            })
-            .sort((a, b) => {
-                return fs.statSync(`./images/${b}`).mtime.getTime() - fs.statSync(`./images/${a}`).mtime.getTime();
-            });
-            
+    try {
+        syncLocalManifest();
+        const images = listImageFileNames();
         res.json({ status: 'success', images });
-    });
+    } catch (err) {
+        res.status(500).json({ status: 'error', message: err.message });
+    }
 });
 
 app.listen(PORT, () => {
@@ -128,7 +120,7 @@ function fileNameForDelete(name) {
 function listImageFileNames() {
     return fs.readdirSync('./images/')
         .filter((file) => {
-            if (!file || file.startsWith('.')) return false;
+            if (!file || file.startsWith('.') || file === 'manifest.json') return false;
             const ext = path.extname(file).toLowerCase();
             return IMAGE_EXTENSIONS.has(ext);
         })
