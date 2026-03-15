@@ -34,21 +34,18 @@ jobs:
         
     - name: Update manifest.json on FTP
       run: |
-        # Install lftp for advanced FTP operations
+        # Install tools for FTP + JSON generation
         sudo apt-get update
-        sudo apt-get install -y lftp
-        
-        # Download current manifest
-        lftp -c "open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }}; get /public_html/images/manifest.json -o manifest.json" || echo '[]' > manifest.json
-        
-        # Add new filename to manifest
-        NEW_FILE="${{ github.event.inputs.filename }}"
-        jq --arg file "$NEW_FILE" '. += [$file] | unique' manifest.json > manifest_updated.json
-        
-        # Upload updated manifest
-        lftp -c "open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }}; put manifest_updated.json -o /public_html/images/manifest.json"
+        sudo apt-get install -y lftp jq
+
+        # Build manifest from the actual FTP folder contents
+        lftp -c "set ftp:ssl-allow no; open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }}; cls -1 /public_html/images" > remote_files.txt
+        grep -Ei '\.(png|jpg|jpeg|gif|webp|svg)$' remote_files.txt | sort | jq -R -s 'split("\n") | map(select(length > 0))' > manifest_updated.json
+
+        # Upload regenerated manifest
+        lftp -c "set ftp:ssl-allow no; open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }}; put manifest_updated.json -o /public_html/images/manifest.json"
         
     - name: Cleanup
       run: |
         rm -rf temp_images
-        rm -f manifest.json manifest_updated.json
+        rm -f remote_files.txt manifest_updated.json
