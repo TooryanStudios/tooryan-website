@@ -1,0 +1,36 @@
+name: Upload Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      filename:
+        description: 'Image filename'
+        required: true
+      content:
+        description: 'Base64 encoded image content'
+        required: true
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Decode and save image
+      run: |
+        echo "${{ github.event.inputs.content }}" | base64 -d > "images/${{ github.event.inputs.filename }}"
+        
+    - name: Update manifest.json
+      run: |
+        cd images
+        ls -1 *.png *.jpg *.jpeg *.gif *.webp *.svg 2>/dev/null | jq -R -s -c 'split("\n")[:-1]' > manifest.json
+        
+    - name: Commit and push
+      run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "actions@github.com"
+        git add images/
+        git commit -m "Add uploaded image: ${{ github.event.inputs.filename }}"
+        git push
