@@ -394,58 +394,80 @@
             display: flex;
         }
         .image-picker-panel {
-            width: min(820px, 100%);
-            max-height: min(78vh, 700px);
-            background: rgba(10, 18, 36, 0.96);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 16px;
-            padding: 14px;
+            width: min(760px, 100%);
+            max-height: min(74vh, 620px);
+            background: linear-gradient(180deg, rgba(10, 18, 36, 0.96) 0%, rgba(8, 15, 30, 0.98) 100%);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 14px;
+            padding: 10px 10px 12px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
         .image-picker-head {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            gap: 8px;
+        }
+        .image-picker-head strong {
+            font-size: 0.98rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+        .image-picker-panel .btn {
+            padding: 5px 10px;
+            font-size: 0.76rem;
+            border-radius: 10px;
+            font-weight: 500;
+            text-transform: none;
+            letter-spacing: 0.01em;
         }
         .image-picker-grid {
             overflow: auto;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+            gap: 8px;
             padding-right: 4px;
         }
         .image-picker-item {
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.02);
-            border-radius: 10px;
-            padding: 6px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.015) 100%);
+            border-radius: 9px;
+            padding: 5px;
             cursor: pointer;
             display: grid;
-            gap: 6px;
+            gap: 5px;
         }
         .image-picker-item img {
             width: 100%;
-            height: 80px;
+            height: 66px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 7px;
         }
         .image-picker-item span {
-            font-size: 0.68rem;
+            font-size: 0.63rem;
             color: var(--muted);
-            line-height: 1.35;
+            line-height: 1.25;
             overflow-wrap: anywhere;
+            display: -webkit-box;
+            line-clamp: 2;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 2.5em;
         }
         .library-item-actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 4px;
         }
         .library-item-actions .btn {
-            flex: 1 1 auto;
             min-width: 0;
+            padding: 4px 6px;
+            font-size: 0.68rem;
+            border-radius: 8px;
+            font-weight: 500;
         }
         .crop-modal {
             position: fixed;
@@ -571,12 +593,6 @@
                 <p>Admin HTML: <strong id="adminPath">Loading...</strong></p>
                 <p>Data JSON: <strong id="dataPath">Loading...</strong></p>
                 <p>Site images: <strong id="imagesPath">Loading...</strong></p>
-                <div style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid rgba(255,255,255,0.08);">
-                    <p style="margin-bottom:8px; font-weight:500;">Images in folder:</p>
-                    <div id="imagesList" style="font-size:0.8rem; color:var(--muted); max-height:150px; overflow:auto; scrollbar-gutter:stable both-edges; padding-right:6px; white-space:nowrap;">
-                        <p>Scanning...</p>
-                    </div>
-                </div>
             </div>
             <form id="adminForm">
                 <div id="sectionPanels">
@@ -590,6 +606,12 @@
                             </div>
                             <div class="field" style="margin-top:15px;">
                                 <label>Browse Uploaded Images</label>
+                                <div style="margin-bottom:8px; padding:10px; background:rgba(0,0,0,0.28); border-radius:10px; border:1px solid rgba(255,255,255,0.07);">
+                                    <p style="margin-bottom:6px; font-weight:500;">Images in folder:</p>
+                                    <div id="imagesList" style="font-size:0.8rem; color:var(--muted); max-height:120px; overflow:auto; scrollbar-gutter:stable both-edges; padding-right:6px; white-space:nowrap;">
+                                        <p>Scanning...</p>
+                                    </div>
+                                </div>
                                 <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
                                     <button type="button" class="btn mini" id="refreshImagesBtn">Refresh Images Folder</button>
                                     <button type="button" class="btn mini" id="manageLibraryBtn">Manage Library</button>
@@ -973,6 +995,21 @@
             previewEl.appendChild(img);
         }
 
+        function attachImagePreviewToInput(input) {
+            if (!input || input.dataset.previewAttached === 'true') return;
+            input.dataset.previewAttached = 'true';
+            const tools = document.createElement('div');
+            tools.className = 'image-field-tools';
+            const preview = document.createElement('div');
+            preview.className = 'image-preview';
+            setImagePreview(preview, input.value);
+            input.addEventListener('input', () => {
+                setImagePreview(preview, input.value);
+            });
+            tools.appendChild(preview);
+            input.insertAdjacentElement('afterend', tools);
+        }
+
         async function fetchAvailableImageNames() {
             const cacheBuster = `t=${Date.now()}`;
             try {
@@ -1199,7 +1236,7 @@
             libraryManagerModal.innerHTML = `
                 <div class="image-picker-panel">
                     <div class="image-picker-head">
-                        <strong>Library Image Management</strong>
+                        <strong>Library Manager</strong>
                         <div style="display:flex; gap:8px; flex-wrap:wrap;">
                             <button type="button" class="btn mini" id="libraryUploadTrigger">Upload</button>
                             <button type="button" class="btn mini" id="libraryRefreshBtn">Refresh</button>
@@ -1255,9 +1292,9 @@
                     <img src="${imagesBasePath}${encodeURIComponent(name)}?t=${Date.now()}" alt="${name}">
                     <span>${name}</span>
                     <div class="library-item-actions">
-                        <button type="button" class="btn mini" data-lib-copy>Copy URL</button>
+                        <button type="button" class="btn mini" data-lib-copy>Copy</button>
                         <button type="button" class="btn mini" data-lib-crop>Crop</button>
-                        <button type="button" class="btn mini" data-lib-delete>Delete</button>
+                        <button type="button" class="btn mini" data-lib-delete>Del</button>
                     </div>
                 `;
 
@@ -1348,6 +1385,9 @@
                         updateTitle();
                     }
                 });
+                if (input.tagName === 'INPUT' && isImageField(field.key, field.label)) {
+                    attachImagePreviewToInput(input);
+                }
                 card.appendChild(fieldWrapper);
             });
 
@@ -1450,6 +1490,9 @@
                     input.value = content[key] || '';
                     field.appendChild(input);
                     attachAutoFillListeners(input);
+                    if (input.tagName === 'INPUT' && isImageField(key, label.textContent)) {
+                        attachImagePreviewToInput(input);
+                    }
                     body.appendChild(field);
                 });
 
