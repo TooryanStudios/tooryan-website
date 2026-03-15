@@ -96,15 +96,26 @@ window.saveTooryanContent = async function (content) {
             },
             body: JSON.stringify(content)
         });
-        
-        const result = await response.json();
-        if(result.status !== 'success') {
-            console.error('Server save failed:', result.message);
-            alert('Failed to save to server. Saved locally instead. Make sure you are running via a PHP server.');
+
+        if (!response.ok) {
+            let serverMessage = 'Server save failed.';
+            try {
+                const errorBody = await response.json();
+                serverMessage = errorBody?.message || serverMessage;
+            } catch {}
+            console.error('Server save failed:', serverMessage);
+            return { status: 'local_only', message: serverMessage };
         }
+
+        const result = await response.json();
+        if (result.status !== 'success') {
+            console.error('Server save failed:', result.message);
+            return { status: 'local_only', message: result.message || 'Server save failed.' };
+        }
+        return { status: 'success', message: result.message || 'Saved successfully.' };
     } catch (error) {
-        console.error('Could not reach save.php', error);
-        alert('Could not connect to the server to save. Changes saved locally only. (Are you running PHP?)');
+        console.error('Could not reach /api/save', error);
+        return { status: 'local_only', message: 'Could not connect to save API. Changes were saved locally only.' };
     }
 };
 

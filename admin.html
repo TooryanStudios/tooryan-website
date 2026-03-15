@@ -1716,10 +1716,20 @@
         }
 
         document.getElementById('saveBtn').addEventListener('click', async () => {
-            document.getElementById('saveBtn').textContent = 'Saving...';
-            await window.saveTooryanContent(collectForm());
-            document.getElementById('saveBtn').textContent = 'Save changes';
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.textContent = 'Saving...';
+            const result = await window.saveTooryanContent(collectForm());
+            saveBtn.textContent = 'Save changes';
             refreshPreview();
+            if (result?.status === 'local_only') {
+                await showDialog({
+                    title: 'Saved Locally',
+                    message: result?.message || 'Could not connect to the save API. Changes were saved locally only.',
+                    buttons: [{ id: 'ok', label: 'OK', className: 'btn mini' }]
+                });
+            } else {
+                showToast('Changes saved.', 'success');
+            }
         });
 
         document.getElementById('resetBtn').addEventListener('click', async () => {
