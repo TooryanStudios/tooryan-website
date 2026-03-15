@@ -332,7 +332,7 @@
             </section>
         </div>
         <div class="panel-column">
-            <h1>Tooryan Admin <span id="buildVersion" style="font-size:0.5em; color:var(--muted); font-weight:400;">v...</span></h1>
+            <h1>Tooryan Admin <span id="buildVersion" style="font-size:0.5em; color:var(--muted); font-weight:400;">v...</span> <span id="buildStatus" style="font-size:0.35em; font-weight:600; letter-spacing:0.04em; padding:3px 8px; border-radius:999px; background:rgba(255,255,255,0.1); color:var(--muted); vertical-align:middle;">Checking...</span></h1>
             <div class="hint" style="margin-bottom:18px;" id="pathInfo">
                 <p>Admin HTML: <strong id="adminPath">Loading...</strong></p>
                 <p>Data JSON: <strong id="dataPath">Loading...</strong></p>
@@ -390,6 +390,21 @@
                 .filter(Boolean);
         }
 
+        function setBuildStatus(label, tone = 'muted') {
+            const statusEl = document.getElementById('buildStatus');
+            if (!statusEl) return;
+            const tones = {
+                ok: { background: 'rgba(76, 210, 120, 0.18)', color: '#9ff2be' },
+                pending: { background: 'rgba(210, 165, 76, 0.2)', color: '#f2cf86' },
+                warn: { background: 'rgba(255, 99, 99, 0.2)', color: '#ffadad' },
+                muted: { background: 'rgba(255,255,255,0.1)', color: 'var(--muted)' }
+            };
+            const style = tones[tone] || tones.muted;
+            statusEl.textContent = label;
+            statusEl.style.background = style.background;
+            statusEl.style.color = style.color;
+        }
+
         async function loadImagesFolderList() {
             const imagesListEl = document.getElementById('imagesList');
             if (!imagesListEl) return;
@@ -437,14 +452,31 @@
             document.getElementById('dataPath').textContent = dataPath;
             document.getElementById('imagesPath').textContent = imagesPath;
             
-            // Fetch and display build version
-            fetch(origin + baseDir + 'version.json')
+            // Fetch and display build version + deploy status
+            setBuildStatus('Checking...', 'muted');
+            fetch(origin + baseDir + `version.json?t=${Date.now()}`, { cache: 'no-store' })
                 .then(res => res.json())
-                .then(version => {
+                .then(async (version) => {
                     document.getElementById('buildVersion').textContent = `v${version.build} (${version.commit})`;
+                    setBuildStatus('Live', 'ok');
+
+                    try {
+                        const latestRes = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/commits/main', { cache: 'no-store' });
+                        if (!latestRes.ok) return;
+                        const latestCommit = await latestRes.json();
+                        const latestSha = String(latestCommit?.sha || '').slice(0, 7);
+                        if (latestSha && String(version.commit || '').slice(0, 7) !== latestSha) {
+                            setBuildStatus('Pending Deploy', 'pending');
+                        } else if (latestSha) {
+                            setBuildStatus('Live', 'ok');
+                        }
+                    } catch (e) {
+                        console.log('Unable to verify latest GitHub commit for deploy status:', e);
+                    }
                 })
                 .catch(() => {
                     document.getElementById('buildVersion').textContent = 'v1.0.0';
+                    setBuildStatus('Unknown', 'warn');
                 });
             
             loadImagesFolderList();
@@ -773,36 +805,57 @@
 
         // --- Image Manager Logic ---
 
+        function renderGalleryImages(imageNames) {
+            const gallery = document.getElementById('imageGallery');
+            if (!gallery) return;
+            gallery.innerHTML = '';
+            if (imageNames.length === 0) {
+                gallery.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">No images uploaded yet.</p>';
+                return;
+            }
+
+            imageNames.forEach((imageName) => {
+                const img = document.createElement('img');
+                const relativeUrl = `./images/${imageName}`;
+                img.src = `${imagesBasePath}${encodeURIComponent(imageName)}?t=${Date.now()}`;
+                img.style.width = '60px';
+                img.style.height = '60px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '5px';
+                img.style.cursor = 'pointer';
+                img.title = 'Click to copy URL';
+                img.onclick = () => {
+                    navigator.clipboard.writeText(relativeUrl).then(() => {
+                        alert('Copied URL: ' + relativeUrl);
+                    });
+                };
+                gallery.appendChild(img);
+            });
+        }
+
         async function loadGallery() {
             const gallery = document.getElementById('imageGallery');
+            if (!gallery) return;
+            gallery.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>';
+            const cacheBuster = `t=${Date.now()}`;
+
             try {
-                const res = await fetch('/api/list_images');
+                const manifestRes = await fetch(`${imagesBasePath}manifest.json?${cacheBuster}`, { cache: 'no-store' });
+                if (!manifestRes.ok) throw new Error(`Manifest load failed with status ${manifestRes.status}`);
+                const imageNames = normalizeImageNames(await manifestRes.json());
+                renderGalleryImages(imageNames);
+                return;
+            } catch (manifestErr) {
+                console.log('Manifest gallery load failed, trying API fallback:', manifestErr);
+            }
+
+            try {
+                const res = await fetch(`/api/list_images?${cacheBuster}`, { cache: 'no-store' });
                 const data = await res.json();
-                if(data.status === 'success') {
-                    gallery.innerHTML = '';
-                    if(data.images.length === 0) {
-                        gallery.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">No images uploaded yet.</p>';
-                        return;
-                    }
-                    data.images.forEach(imgUrl => {
-                        const img = document.createElement('img');
-                        img.src = imgUrl;
-                        img.style.width = '60px';
-                        img.style.height = '60px';
-                        img.style.objectFit = 'cover';
-                        img.style.borderRadius = '5px';
-                        img.style.cursor = 'pointer';
-                        img.title = 'Click to copy URL';
-                        img.onclick = () => {
-                            navigator.clipboard.writeText(imgUrl).then(() => {
-                                alert('Copied URL: ' + imgUrl);
-                            });
-                        };
-                        gallery.appendChild(img);
-                    });
-                }
-            } catch(e) {
-                gallery.innerHTML = '<p style="color:red; font-size:0.8rem;">Failed to load images (Requires local Node server)</p>';
+                const imageNames = normalizeImageNames(data?.images);
+                renderGalleryImages(imageNames);
+            } catch (e) {
+                gallery.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">Unable to load images right now.</p>';
             }
         }
 
