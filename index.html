@@ -1,621 +1,755 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="lenis lenis-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tooryan Studios | Digital Animation</title>
+    <title>Tooryan Studios | Digital Art & Animation</title>
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syncopate:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- GSAP & Lenis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+
+    <!-- Site Configuration -->
+    <script src="site-config.js"></script>
+
     <style>
         :root {
-            --bg: #07050f;
+            --bg: #030303;
             --text: #ffffff;
-            --text-muted: rgba(255, 255, 255, 0.6);
-            --border: rgba(255, 255, 255, 0.08);
-            --card-bg: rgba(20, 15, 35, 0.4);
-            --primary-gradient: linear-gradient(135deg, #d864ff 0%, #7d35ff 100%);
-            --text-gradient: linear-gradient(to right, #ffffff 20%, #d864ff 50%, #7d35ff 80%);
-            --glow-purple: rgba(125, 53, 255, 0.5);
-            --glow-pink: rgba(216, 100, 255, 0.5);
+            --accent: #d4af37; /* Gold */
+            --muted: #888888;
+            --font-display: 'Syncopate', sans-serif;
+            --font-sans: 'Space Grotesk', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        html.lenis {
+            height: auto;
+        }
+        .lenis.lenis-smooth {
+            scroll-behavior: auto;
+        }
+        .lenis.lenis-smooth [data-lenis-prevent] {
+            overscroll-behavior: contain;
+        }
+        .lenis.lenis-stopped {
+            overflow: hidden;
+        }
+        .lenis.lenis-scrolling iframe {
+            pointer-events: none;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         body {
             background-color: var(--bg);
             color: var(--text);
+            font-family: var(--font-body);
             overflow-x: hidden;
-            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Abstract Glows */
-        .glow-bg {
+        /* Cinematic Grain Overlay */
+        .noise {
             position: fixed;
-            width: 100vw;
-            height: 100vh;
-            top: 0;
-            left: 0;
-            z-index: -1;
+            top: 0; left: 0; width: 100vw; height: 100vh;
             pointer-events: none;
-            overflow: hidden;
-        }
-        
-        .glow-bg::before, .glow-bg::after {
-            content: '';
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.4;
+            z-index: 9999;
+            opacity: 0.04;
+            background: url('data:image/svg+xml,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
         }
 
-        .glow-bg::before {
-            top: -100px;
-            left: 10%;
-            background: radial-gradient(circle, var(--glow-purple) 0%, transparent 70%);
-        }
-
-        .glow-bg::after {
-            top: 40%;
-            right: -100px;
-            background: radial-gradient(circle, var(--glow-pink) 0%, transparent 70%);
-        }
-
-        /* Ribbon */
-        .hero-ribbon {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 1200px;
-            height: 500px;
-            background: radial-gradient(ellipse at center, rgba(125, 53, 255, 0.15) 0%, transparent 70%);
-            z-index: -1;
-            border-radius: 50%;
-            filter: blur(40px);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        /* Navbar */
+        /* Nav */
         nav {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            padding: 2rem 4rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 24px 0;
-            border-bottom: 1px solid var(--border);
+            z-index: 100;
+            mix-blend-mode: difference;
         }
-
         .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: var(--text-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-decoration: none;
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
-
-        .nav-links {
-            display: flex;
-            gap: 32px;
-        }
-
         .nav-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
             color: var(--text);
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
             text-decoration: none;
-            transition: transform 0.3s, box-shadow 0.3s;
-            display: inline-block;
-        }
-
-        .btn-primary {
-            background: var(--primary-gradient);
-            color: white;
-            box-shadow: 0 4px 20px rgba(125, 53, 255, 0.3);
-            border: none;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(125, 53, 255, 0.5);
-        }
-
-        .btn-outline {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border);
-            color: white;
-            backdrop-filter: blur(10px);
-        }
-
-        .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Hero */
-        .hero {
-            text-align: center;
-            padding: 120px 0 80px;
-            position: relative;
-        }
-
-        .hero-eyebrow {
-            display: inline-block;
-            padding: 6px 16px;
-            background: rgba(125, 53, 255, 0.1);
-            border: 1px solid rgba(125, 53, 255, 0.3);
-            border-radius: 20px;
-            color: #d864ff;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 24px;
+            margin-left: 2rem;
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .hero h1 {
-            font-size: clamp(3rem, 6vw, 5rem);
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 24px;
-            letter-spacing: -1px;
-        }
-
-        .hero h1 span {
-            background: var(--text-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero p {
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0 auto 40px;
-        }
-
-        .hero-actions {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-        }
-
-        /* Section Titles */
-        .section-header {
-            text-align: center;
-            margin-bottom: 64px;
-        }
-
-        .section-header h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        .section-header p {
-            color: var(--text-muted);
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        /* Cards / Featured Work */
-        .work-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 32px;
-            margin-bottom: 120px;
-        }
-
-        .glass-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 40px;
-            backdrop-filter: blur(20px);
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s, border-color 0.3s;
-        }
-
-        .glass-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(216, 100, 255, 0.4);
-        }
-
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at top left, rgba(125, 53, 255, 0.1), transparent 50%);
+        /* Custom Cursor */
+        .cursor {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            position: fixed;
             pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s, background-color 0.3s;
+            mix-blend-mode: difference;
+        }
+        .cursor.active {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(212, 175, 55, 0.2);
         }
 
-        .card-image {
-            width: 100%;
-            height: 240px;
-            border-radius: 16px;
-            background-color: #1a1525;
-            margin-bottom: 24px;
-            background-size: cover;
-            background-position: center;
-            border: 1px solid rgba(255,255,255,0.05);
+        /* Typography */
+        h1, h2, h3, h4 {
+            font-family: var(--font-display);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .stroke {
+            color: transparent;
+            -webkit-text-stroke: 1px var(--text);
         }
 
-        .glass-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 12px;
-            background: var(--text-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        /* --- SECTIONS --- */
+        section {
+            position: relative;
+            width: 100vw;
         }
 
-        .glass-card p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            line-height: 1.7;
-        }
-
-        /* Zig Zag Services */
-        .services-section {
-            padding: 80px 0;
+        /* 1. HERO - Full screen parallax */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
             position: relative;
         }
-
-        .zigzag-container {
-            position: relative;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        /* The glowing connecting line */
-        .zigzag-line {
+        .hero-bg {
             position: absolute;
-            top: 50px;
-            bottom: 50px;
-            left: 50%;
-            width: 2px;
-            background: linear-gradient(to bottom, rgba(216, 100, 255, 0), rgba(216, 100, 255, 0.5), rgba(125, 53, 255, 0.5), rgba(125, 53, 255, 0));
-            transform: translateX(-50%);
+            top: 0; left: 0; width: 100%; height: 120%;
+            object-fit: cover;
+            opacity: 0.4;
             z-index: 0;
+            will-change: transform;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 0 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .hero-eyebrow {
+            font-family: var(--font-sans);
+            color: var(--accent);
+            letter-spacing: 4px;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 8rem);
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            max-width: 90vw;
+        }
+        .hero-desc {
+            font-family: var(--font-sans);
+            font-size: clamp(1rem, 1.5vw, 1.2rem);
+            max-width: 600px;
+            color: var(--muted);
+            line-height: 1.6;
         }
 
-        .service-item {
+        /* 2. VISION - Scrubbing text reveal */
+        .vision {
+            min-height: 100vh;
             display: flex;
             align-items: center;
-            gap: 40px;
-            margin-bottom: 80px;
+            justify-content: center;
+            padding: 5rem 2rem;
+            background-color: #000;
+        }
+        .vision-text {
+            font-size: clamp(2rem, 5vw, 5rem);
+            line-height: 1.2;
+            max-width: 80vw;
+            text-align: center;
+            font-family: var(--font-sans);
+            font-weight: 500;
+        }
+        .vision-text span {
+            opacity: 0.2;
+            transition: opacity 0.1s;
+        }
+        .vision-sub {
+            margin-top: 3rem;
+            font-size: 1.2rem;
+            color: var(--accent);
+            text-align: center;
+            font-family: var(--font-body);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 3. HORIZONTAL SCROLL - Featured Works */
+        .horizontal-wrapper {
+            height: 300vh; /* Determines scroll length */
+            position: relative;
+        }
+        .horizontal-sticky {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            background: #050505;
+        }
+        .horizontal-container {
+            display: flex;
+            gap: 10vw;
+            padding: 0 10vw;
+            height: 70vh;
+            align-items: center;
+            will-change: transform;
+        }
+        .work-card {
+            width: 60vw;
+            height: 100%;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        .work-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .work-card:hover img {
+            transform: scale(1.05);
+        }
+        .work-info {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%;
+            padding: 3rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            color: #fff;
+        }
+        .work-info h3 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .work-info p {
+            font-family: var(--font-sans);
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+        .h-title-section {
+            width: 40vw;
+            flex-shrink: 0;
+            padding-right: 5vw;
+        }
+        .h-title-section h2 {
+            font-size: 4rem;
+            line-height: 1;
+            margin-bottom: 2rem;
+        }
+        .h-title-section p {
+            color: var(--muted);
+            font-family: var(--font-sans);
+            font-size: 1.2rem;
+        }
+
+        /* 4. SERVICES - Stacking Cards */
+        .services {
+            padding: 10rem 5vw;
+            background: #030303;
             position: relative;
             z-index: 1;
         }
-
-        .service-item:nth-child(even) {
-            flex-direction: row-reverse;
-            text-align: right;
-        }
-
-        .service-number {
-            font-size: 4rem;
-            font-weight: 800;
-            color: rgba(255, 255, 255, 0.05);
-            -webkit-text-stroke: 1px rgba(216, 100, 255, 0.3);
-            width: 120px;
+        .services-header {
             text-align: center;
+            margin-bottom: 8rem;
         }
-
-        .service-content {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 32px;
-            flex: 1;
-            position: relative;
-            backdrop-filter: blur(10px);
+        .services-header h2 {
+            font-size: 5rem;
+            color: transparent;
+            -webkit-text-stroke: 1px var(--accent);
         }
-
-        .service-item:nth-child(odd) .service-content {
-            box-shadow: -20px 20px 40px rgba(0,0,0,0.5);
-        }
-        
-        .service-item:nth-child(even) .service-content {
-            box-shadow: 20px 20px 40px rgba(0,0,0,0.5);
-        }
-
-        .service-content h3 {
-            font-size: 1.4rem;
-            margin-bottom: 12px;
-            color: #fff;
-        }
-
-        .service-content p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        /* Vision / Quote Box */
-        .vision-section {
-            padding: 100px 0;
-            text-align: center;
-        }
-
-        .vision-box {
-            background: linear-gradient(180deg, rgba(30, 20, 50, 0.5) 0%, rgba(15, 10, 25, 0.5) 100%);
-            border: 1px solid rgba(125, 53, 255, 0.3);
-            border-radius: 32px;
-            padding: 64px 40px;
-            max-width: 800px;
-            margin: 0 auto;
-            position: relative;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 0 40px rgba(125, 53, 255, 0.1);
-        }
-
-        .vision-box h2 {
-            font-size: 2rem;
-            margin-bottom: 24px;
-            background: var(--text-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .vision-box p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            margin-bottom: 24px;
-        }
-
-        .vision-box blockquote {
-            font-size: 1.2rem;
-            font-style: italic;
-            color: #fff;
-            border-left: 2px solid #d864ff;
-            padding-left: 16px;
-            margin-top: 32px;
-        }
-
-        /* Footer */
-        footer {
-            background: linear-gradient(to top, rgba(125, 53, 255, 0.1), transparent);
-            padding: 80px 0 40px;
-            margin-top: 80px;
-            border-top: 1px solid var(--border);
-            text-align: center;
-        }
-
-        .footer-cta {
-            margin-bottom: 60px;
-        }
-
-        .footer-cta h2 {
-            font-size: 2.5rem;
-            margin-bottom: 16px;
-        }
-
-        .footer-cta p {
-            color: var(--text-muted);
-            margin-bottom: 32px;
-        }
-
-        .footer-bottom {
+        .cards-container {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            border-top: 1px solid var(--border);
-            padding-top: 32px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+            gap: 5vh;
+            padding-bottom: 10vh;
+        }
+        .service-card {
+            position: sticky;
+            top: 20vh;
+            width: 80vw;
+            max-width: 1000px;
+            height: 60vh;
+            background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transform-origin: top center;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+        }
+        .service-card h3 {
+            font-size: 3rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+        }
+        .service-card p {
+            font-family: var(--font-sans);
+            font-size: 1.5rem;
+            color: var(--muted);
+            max-width: 80%;
+            line-height: 1.5;
+        }
+        .service-card:nth-child(1) { top: 15vh; z-index: 1; }
+        .service-card:nth-child(2) { top: 20vh; z-index: 2; }
+        .service-card:nth-child(3) { top: 25vh; z-index: 3; }
+
+        /* 5. FOOTER - Massive Reveal */
+        .footer {
+            height: 100vh;
+            background: #d4af37; /* Gold bg */
+            color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            z-index: 0; /* Behind services so it reveals */
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        }
+        .footer-content {
+            padding: 2rem;
+        }
+        .footer h2 {
+            font-size: clamp(4rem, 10vw, 12rem);
+            line-height: 0.9;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            font-family: var(--font-display);
+        }
+        .footer p {
+            font-family: var(--font-sans);
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+        }
+        .footer-links a {
+            color: #000;
+            text-decoration: none;
+            font-size: 1.2rem;
+            position: relative;
+        }
+        .footer-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px; left: 0; width: 0%; height: 2px;
+            background: #000;
+            transition: width 0.3s;
+        }
+        .footer-links a:hover::after {
+            width: 100%;
         }
 
+        /* Loading Screen */
+        .loader {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000;
+            z-index: 99999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--accent);
+            font-family: var(--font-display);
+            font-size: 2rem;
+        }
+        .loader-text {
+            overflow: hidden;
+        }
+        .loader-text span {
+            display: inline-block;
+            transform: translateY(100%);
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .hero h1 { font-size: 2.5rem; }
-            .work-grid { grid-template-columns: 1fr; }
-            .zigzag-line { display: none; }
-            .service-item, .service-item:nth-child(even) {
-                flex-direction: column;
-                text-align: left;
-                gap: 16px;
-            }
-            .service-number { width: auto; text-align: left; font-size: 3rem; }
-            .footer-bottom { flex-direction: column; gap: 16px; }
+            nav { padding: 1.5rem; }
+            .horizontal-container { padding: 0 5vw; height: 60vh; }
+            .h-title-section { width: 80vw; }
+            .work-card { width: 85vw; }
+            .service-card { padding: 2rem; }
+            .service-card h3 { font-size: 2rem; }
+            .service-card p { font-size: 1.1rem; max-width: 100%; }
+            .cursor { display: none; }
         }
     </style>
 </head>
 <body>
-    <div class="glow-bg"></div>
 
-    <div class="container">
-        <nav>
-            <a href="#" class="logo">Tooryan.</a>
-            <div class="nav-links">
-                <a href="#work">Work</a>
-                <a href="#services">Services</a>
-                <a href="#vision">Vision</a>
-                <a href="./admin.html">Admin</a>
-            </div>
-            <a href="#contact" class="btn btn-primary">Start Project</a>
-        </nav>
+    <!-- Cinematic Noise -->
+    <div class="noise"></div>
 
-        <section class="hero">
-            <div class="hero-ribbon"></div>
-            <span class="hero-eyebrow" id="heroEyebrow"></span>
-            <h1 id="heroTitle"></h1>
-            <p id="heroDescription"></p>
-            <div class="hero-actions">
-                <a href="#work" class="btn btn-primary">View Portfolio</a>
-                <a href="#services" class="btn btn-outline">Explore Services</a>
-            </div>
-        </section>
+    <!-- Custom Cursor -->
+    <div class="cursor" id="custom-cursor"></div>
 
-        <section id="work" style="padding-top: 60px;">
-            <div class="section-header">
-                <h2 id="featuredHeading"></h2>
-                <p id="featuredText"></p>
-            </div>
-            
-            <div class="work-grid">
-                <div class="glass-card">
-                    <div class="card-image" id="side1ImageCard"></div>
-                    <h3 id="side1Title"></h3>
-                    <p id="side1Text"></p>
-                </div>
-                <div class="glass-card">
-                    <div class="card-image" id="side2ImageCard"></div>
-                    <h3 id="side2Title"></h3>
-                    <p id="side2Text"></p>
-                </div>
-            </div>
-        </section>
-
-        <section id="services" class="services-section">
-            <div class="section-header">
-                <h2>Why Tooryan</h2>
-                <p>A specialized digital studio blending art, animation, and technical precision.</p>
-            </div>
-
-            <div class="zigzag-container">
-                <div class="zigzag-line"></div>
-                
-                <div class="service-item">
-                    <div class="service-number">01</div>
-                    <div class="service-content">
-                        <h3 id="service1Title"></h3>
-                        <p id="service1Text"></p>
-                    </div>
-                </div>
-
-                <div class="service-item">
-                    <div class="service-number">02</div>
-                    <div class="service-content">
-                        <h3 id="service2Title"></h3>
-                        <p id="service2Text"></p>
-                    </div>
-                </div>
-
-                <div class="service-item">
-                    <div class="service-number">03</div>
-                    <div class="service-content">
-                        <h3 id="service3Title"></h3>
-                        <p id="service3Text"></p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="vision" class="vision-section">
-            <div class="vision-box">
-                <h2 id="visionTitle"></h2>
-                <p id="visionText"></p>
-                <blockquote id="quote"></blockquote>
-            </div>
-        </section>
+    <!-- Preloader -->
+    <div class="loader" id="loader">
+        <div class="loader-text"><span id="loader-span">TOORYAN STUDIOS</span></div>
     </div>
 
-    <footer id="contact">
-        <div class="container">
-            <div class="footer-cta">
-                <h2 id="contactTitle"></h2>
-                <p id="contactText"></p>
-                <a href="#" id="emailCta" class="btn btn-primary">Join Our Studio</a>
-            </div>
-            <div class="footer-bottom">
-                <div class="logo" style="font-size: 1.2rem;">Tooryan.</div>
-                <div style="display: flex; gap: 24px;">
-                    <a href="#" id="emailLink" style="color: var(--text-muted); text-decoration: none;"></a>
-                    <a href="#" id="phoneLink" style="color: var(--text-muted); text-decoration: none;"></a>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">TOORYAN</div>
+        <div class="nav-links">
+            <a href="admin.html" class="hover-target">Admin</a>
+            <a href="mailto:tooryanart@gmail.com" class="hover-target" id="navEmail">Contact</a>
+        </div>
+    </nav>
+
+    <!-- 1. HERO SECTION -->
+    <section class="hero" id="hero-section">
+        <img src="" alt="Hero Background" class="hero-bg" id="heroImage" data-speed="0.5">
+        <div class="hero-content">
+            <div class="hero-eyebrow" id="heroEyebrow"></div>
+            <h1 class="hero-title" id="heroTitle"></h1>
+            <p class="hero-desc" id="heroDescription"></p>
+        </div>
+    </section>
+
+    <!-- 2. VISION (Text Scrub) -->
+    <section class="vision">
+        <div style="display:flex; flex-direction:column; align-items:center;">
+            <div class="vision-text" id="visionTitle"></div>
+            <div class="vision-sub" id="visionText"></div>
+        </div>
+    </section>
+
+    <!-- 3. HORIZONTAL WORKS -->
+    <section class="horizontal-wrapper" id="works-wrapper">
+        <div class="horizontal-sticky">
+            <div class="horizontal-container" id="works-container">
+                
+                <div class="h-title-section">
+                    <h2 id="featuredHeading"></h2>
+                    <p id="featuredText"></p>
                 </div>
+
+                <div class="work-card hover-target">
+                    <img id="featuredMainImage" src="" alt="Featured Work 1">
+                    <div class="work-info">
+                        <p id="featuredMainLabel" style="color:var(--accent); font-weight:bold; margin-bottom:10px;"></p>
+                        <h3 id="featuredMainTitle"></h3>
+                    </div>
+                </div>
+
+                <div class="work-card hover-target">
+                    <img id="side1Image" src="" alt="Work 2">
+                    <div class="work-info">
+                        <h3 id="side1Title"></h3>
+                        <p id="side1Text"></p>
+                    </div>
+                </div>
+
+                <div class="work-card hover-target">
+                    <img id="side2Image" src="" alt="Work 3">
+                    <div class="work-info">
+                        <h3 id="side2Title"></h3>
+                        <p id="side2Text"></p>
+                    </div>
+                </div>
+
             </div>
         </div>
-    </footer>
+    </section>
 
-    <script src="./site-config.js"></script>
+    <!-- 4. SERVICES (Stacking Cards) -->
+    <section class="services">
+        <div class="services-header">
+            <h2>EXPERTISE</h2>
+        </div>
+        <div class="cards-container">
+            <div class="service-card hover-target card-1">
+                <h3 id="service1Title"></h3>
+                <p id="service1Text"></p>
+            </div>
+            <div class="service-card hover-target card-2">
+                <h3 id="service2Title"></h3>
+                <p id="service2Text"></p>
+            </div>
+            <div class="service-card hover-target card-3">
+                <h3 id="service3Title"></h3>
+                <p id="service3Text"></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. FOOTER -->
+    <section class="footer" id="footer">
+        <div class="footer-content">
+            <h2 id="contactTitle"></h2>
+            <p id="contactText"></p>
+            <div class="footer-links">
+                <a href="#" id="contactPhone" class="hover-target"></a>
+                <a href="#" id="contactEmail" class="hover-target"></a>
+                <span id="contactLocation" style="align-self:center; font-family:var(--font-sans)"></span>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- SCRIPTS -->
     <script>
+        // --- 1. Load Content from site-config.js ---
         const content = window.getTooryanContent();
         
-        const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value || ''; };
-        const setHtml = (id, value) => { const el = document.getElementById(id); if (el) el.innerHTML = value || ''; };
-        const setBg = (id, url) => { const el = document.getElementById(id); if (el && url) el.style.backgroundImage = `url('${url}')`; };
+        // Map data to DOM
+        document.getElementById('heroEyebrow').innerText = content.heroEyebrow;
+        document.getElementById('heroTitle').innerHTML = content.heroTitleHtml;
+        document.getElementById('heroDescription').innerText = content.heroDescription;
+        document.getElementById('heroImage').src = content.heroImage;
 
-        setText('heroEyebrow', content.heroEyebrow);
-        
-        let hTitle = content.heroTitleHtml || content.heroTitle;
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = hTitle;
-        let plainText = tempDiv.textContent || tempDiv.innerText || "";
-        let words = plainText.split(' ');
-        if(words.length > 2) {
-            let lastWords = words.splice(-2).join(' ');
-            hTitle = `${words.join(' ')} <span>${lastWords}</span>`;
-        }
-        setHtml('heroTitle', hTitle);
-        
-        setText('heroDescription', content.heroDescription);
-        setText('featuredHeading', content.featuredHeading);
-        setText('featuredText', content.featuredText);
-        
-        setText('side1Title', content.side1Title);
-        setText('side1Text', content.side1Text);
-        setBg('side1ImageCard', content.side1Image);
-        
-        setText('side2Title', content.side2Title);
-        setText('side2Text', content.side2Text);
-        setBg('side2ImageCard', content.side2Image);
+        // Vision
+        const visionTitleEl = document.getElementById('visionTitle');
+        // Split text for scrubbing effect
+        const words = content.visionTitle.split(' ');
+        visionTitleEl.innerHTML = words.map(w => `<span>${w} </span>`).join('');
+        document.getElementById('visionText').innerText = content.visionText;
 
-        setText('service1Title', content.service1Title);
-        setText('service1Text', content.service1Text);
-        setText('service2Title', content.service2Title);
-        setText('service2Text', content.service2Text);
-        setText('service3Title', content.service3Title);
-        setText('service3Text', content.service3Text);
+        // Works
+        document.getElementById('featuredHeading').innerText = content.featuredHeading;
+        document.getElementById('featuredText').innerText = content.featuredText;
         
-        setText('visionTitle', content.visionTitle);
-        setText('visionText', content.visionText);
-        setText('quote', `"${content.quote}"`);
-        
-        setText('contactTitle', content.contactTitle);
-        setText('contactText', content.contactText);
-        
-        const emailLink = document.getElementById('emailLink');
-        const emailCta = document.getElementById('emailCta');
-        if(emailLink) {
-            emailLink.textContent = content.email;
-            emailLink.href = `mailto:${content.email}`;
-            if(emailCta) emailCta.href = `mailto:${content.email}`;
+        document.getElementById('featuredMainImage').src = content.featuredMainImage;
+        document.getElementById('featuredMainLabel').innerText = content.featuredMainLabel;
+        document.getElementById('featuredMainTitle').innerText = content.featuredMainTitle;
+
+        document.getElementById('side1Image').src = content.side1Image;
+        document.getElementById('side1Title').innerText = content.side1Title;
+        document.getElementById('side1Text').innerText = content.side1Text;
+
+        document.getElementById('side2Image').src = content.side2Image;
+        document.getElementById('side2Title').innerText = content.side2Title;
+        document.getElementById('side2Text').innerText = content.side2Text;
+
+        // Services
+        document.getElementById('service1Title').innerText = content.service1Title;
+        document.getElementById('service1Text').innerText = content.service1Text;
+        document.getElementById('service2Title').innerText = content.service2Title;
+        document.getElementById('service2Text').innerText = content.service2Text;
+        document.getElementById('service3Title').innerText = content.service3Title;
+        document.getElementById('service3Text').innerText = content.service3Text;
+
+        // Footer
+        document.getElementById('contactTitle').innerText = content.contactTitle;
+        document.getElementById('contactText').innerText = content.contactText;
+        document.getElementById('contactPhone').innerText = content.phone;
+        document.getElementById('contactPhone').href = `tel:${content.phone.replace(/[^0-9+]/g, '')}`;
+        document.getElementById('contactEmail').innerText = content.email;
+        document.getElementById('contactEmail').href = `mailto:${content.email}`;
+        document.getElementById('navEmail').href = `mailto:${content.email}`;
+        document.getElementById('contactLocation').innerText = content.location;
+
+
+        // --- 2. Animations & Scroll (GSAP + Lenis) ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Smooth Scroll Setup
+        const lenis = new Lenis({
+            duration: 1.2,
+            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            direction: 'vertical',
+            gestureDirection: 'vertical',
+            smooth: true,
+            mouseMultiplier: 1,
+            smoothTouch: false,
+            touchMultiplier: 2,
+            infinite: false,
+        });
+
+        function raf(time) {
+            lenis.raf(time);
+            requestAnimationFrame(raf);
         }
+        requestAnimationFrame(raf);
+
+        // Connect GSAP to Lenis
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add((time) => { lenis.raf(time * 1000) });
+        gsap.ticker.lagSmoothing(0, 0);
+
+        // Custom Cursor
+        const cursor = document.getElementById('custom-cursor');
+        document.addEventListener('mousemove', (e) => {
+            gsap.to(cursor, {
+                x: e.clientX,
+                y: e.clientY,
+                duration: 0.1,
+                ease: 'power2.out'
+            });
+        });
+
+        document.querySelectorAll('.hover-target').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('active'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('active'));
+        });
+
+        // Preloader Animation
+        window.addEventListener('load', () => {
+            const tl = gsap.timeline();
+            tl.to('#loader-span', { y: '0%', duration: 1, ease: 'power4.out' })
+              .to('#loader-span', { y: '-100%', duration: 0.8, ease: 'power4.in', delay: 0.5 })
+              .to('#loader', { height: 0, duration: 1, ease: 'expo.inOut' })
+              .from('.hero-title', { y: 100, opacity: 0, duration: 1.5, ease: 'expo.out' }, "-=0.5")
+              .from('.hero-eyebrow, .hero-desc', { y: 20, opacity: 0, duration: 1, stagger: 0.2, ease: 'power2.out' }, "-=1");
+        });
+
+        // Hero Parallax
+        gsap.to('.hero-bg', {
+            yPercent: 30,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '.hero',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: true
+            }
+        });
+        gsap.to('.hero-content', {
+            y: 150,
+            opacity: 0,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '.hero',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: true
+            }
+        });
+
+        // Vision Text Scrub
+        gsap.to('#visionTitle span', {
+            opacity: 1,
+            stagger: 0.1,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '.vision',
+                start: 'top 60%',
+                end: 'center center',
+                scrub: 1
+            }
+        });
+        gsap.from('#visionText', {
+            opacity: 0,
+            y: 50,
+            scrollTrigger: {
+                trigger: '#visionText',
+                start: 'top 80%',
+                end: 'top 60%',
+                scrub: 1
+            }
+        });
+
+        // Horizontal Scroll
+        const horizontalContainer = document.getElementById('works-container');
+        const getScrollAmount = () => -(horizontalContainer.scrollWidth - window.innerWidth);
         
-        const phoneLink = document.getElementById('phoneLink');
-        if(phoneLink) {
-            phoneLink.textContent = content.phone;
-            phoneLink.href = `tel:${content.phone.replace(/\s+/g, '')}`;
-        }
+        gsap.to(horizontalContainer, {
+            x: getScrollAmount,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '.horizontal-wrapper',
+                start: 'top top',
+                end: () => `+=${getScrollAmount() * -1}`,
+                pin: true,
+                animation: gsap.to(horizontalContainer, {x: getScrollAmount, ease: 'none'}),
+                scrub: 1,
+                invalidateOnRefresh: true
+            }
+        });
+
+        // Stacking Cards (Services)
+        const cards = gsap.utils.toArray('.service-card');
+        cards.forEach((card, index) => {
+            gsap.to(card, {
+                scale: 0.9 - (0.05 * index),
+                opacity: 0.5,
+                scrollTrigger: {
+                    trigger: card,
+                    start: 'top 15vh',
+                    endTrigger: '.cards-container',
+                    end: 'bottom top',
+                    pin: true,
+                    pinSpacing: false,
+                    scrub: true,
+                    invalidateOnRefresh: true
+                }
+            });
+        });
+
+        // Footer Reveal Parallax
+        gsap.from('.footer-content', {
+            y: -150,
+            opacity: 0,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '.footer',
+                start: 'top bottom',
+                end: 'bottom bottom',
+                scrub: true
+            }
+        });
+
     </script>
 </body>
 </html>
-< ! - -   C a c h e   B u s t   2 0 2 6 - 0 3 - 1 5   0 1 : 1 3 : 3 3   - - >  
- 
