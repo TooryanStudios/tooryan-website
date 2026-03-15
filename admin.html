@@ -254,7 +254,7 @@
         async function loadGallery() {
             const gallery = document.getElementById('imageGallery');
             try {
-                const res = await fetch('api/list_images.php');
+                const res = await fetch('/api/list_images');
                 const data = await res.json();
                 if(data.status === 'success') {
                     gallery.innerHTML = '';
@@ -280,7 +280,7 @@
                     });
                 }
             } catch(e) {
-                gallery.innerHTML = '<p style="color:red; font-size:0.8rem;">Failed to load images (Requires PHP server)</p>';
+                gallery.innerHTML = '<p style="color:red; font-size:0.8rem;">Failed to load images (Requires local Node server)</p>';
             }
         }
 
@@ -298,7 +298,7 @@
             btn.textContent = 'Uploading...';
             
             try {
-                const res = await fetch('api/upload.php', {
+                const res = await fetch('/api/upload', {
                     method: 'POST',
                     body: formData
                 });
@@ -312,7 +312,7 @@
                     alert('Upload failed: ' + data.message);
                 }
             } catch(e) {
-                alert('Upload failed. Ensure you are running on a PHP server.');
+                alert('Upload failed. Ensure you are running the local Node server.');
             }
             
             btn.textContent = 'Upload to Server';

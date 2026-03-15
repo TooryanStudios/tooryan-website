@@ -79,7 +79,7 @@ window.saveTooryanContent = async function (content) {
     
     // Attempt to save to server
     try {
-        const response = await fetch('api/save.php', {
+        const response = await fetch('/api/save', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
