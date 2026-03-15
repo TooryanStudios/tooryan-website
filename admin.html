@@ -356,6 +356,7 @@
                             </div>
                             <div class="field" style="margin-top:15px;">
                                 <label>Browse Uploaded Images</label>
+                                <button type="button" class="btn mini" id="refreshImagesBtn" style="margin-bottom:8px;">Refresh Images Folder</button>
                                 <div id="imageGallery" style="display:flex; flex-wrap:wrap; gap:10px; max-height:200px; overflow-y:auto; background:rgba(0,0,0,0.5); padding:10px; border-radius:10px; border: 1px solid rgba(255,255,255,0.08);">
                                     <p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>
                                 </div>
@@ -380,6 +381,38 @@
     </div>
     <script src="./site-config.js"></script>
     <script>
+        let imagesBasePath = './images/';
+
+        async function loadImagesFolderList() {
+            const imagesListEl = document.getElementById('imagesList');
+            if (!imagesListEl) return;
+            imagesListEl.innerHTML = '<p>Scanning...</p>';
+
+            try {
+                const res = await fetch('/api/list_images');
+                const data = await res.json();
+                const images = Array.isArray(data?.images) ? data.images.map((img) => img.replace('./images/', '')) : [];
+                if (images.length > 0) {
+                    imagesListEl.innerHTML = images.map((img) => `<div style="margin-bottom:4px;">• ${img}</div>`).join('');
+                    return;
+                }
+                imagesListEl.innerHTML = '<p style="color:var(--muted);">No images found</p>';
+            } catch (err) {
+                try {
+                    const res = await fetch(imagesBasePath + 'manifest.json');
+                    const images = await res.json();
+                    if (Array.isArray(images) && images.length > 0) {
+                        imagesListEl.innerHTML = images.map((img) => `<div style="margin-bottom:4px;">• ${img}</div>`).join('');
+                    } else {
+                        imagesListEl.innerHTML = '<p style="color:var(--muted);">No images found</p>';
+                    }
+                } catch (manifestErr) {
+                    imagesListEl.innerHTML = '<p style="color:var(--muted);">Unable to list images (manifest not found)</p>';
+                    console.log('Image listing error:', err, manifestErr);
+                }
+            }
+        }
+
         // Dynamically detect and display current paths
         (function() {
             const currentURL = window.location.href;
@@ -390,6 +423,7 @@
             const adminPath = currentURL;
             const dataPath = origin + baseDir + 'data.json';
             const imagesPath = origin + baseDir + 'images/';
+            imagesBasePath = imagesPath;
             
             document.getElementById('adminPath').textContent = adminPath;
             document.getElementById('dataPath').textContent = dataPath;
@@ -405,39 +439,7 @@
                     document.getElementById('buildVersion').textContent = 'v1.0.0';
                 });
             
-            // Attempt to list images in the folder
-            const imagesListEl = document.getElementById('imagesList');
-            
-            // Try using the existing /api/list_images endpoint first
-            fetch('/api/list_images')
-                .then(res => res.json())
-                .then(images => {
-                    if (images && images.length > 0) {
-                        imagesListEl.innerHTML = images.map(img => 
-                            `<div style="margin-bottom:4px;">• ${img}</div>`
-                        ).join('');
-                    } else {
-                        imagesListEl.innerHTML = '<p style="color:var(--muted);">No images found</p>';
-                    }
-                })
-                .catch(err => {
-                    // If API fails, fall back to static manifest
-                    fetch(imagesPath + 'manifest.json')
-                        .then(res => res.json())
-                        .then(images => {
-                            if (images && images.length > 0) {
-                                imagesListEl.innerHTML = images.map(img => 
-                                    `<div style="margin-bottom:4px;">• ${img}</div>`
-                                ).join('');
-                            } else {
-                                imagesListEl.innerHTML = '<p style="color:var(--muted);">No images found</p>';
-                            }
-                        })
-                        .catch(manifestErr => {
-                            imagesListEl.innerHTML = '<p style="color:var(--muted);">Unable to list images (manifest not found)</p>';
-                            console.log('Image listing error:', err, manifestErr);
-                        });
-                });
+            loadImagesFolderList();
         })();
 
         const groups = {
@@ -796,6 +798,10 @@
             }
         }
 
+        document.getElementById('refreshImagesBtn').addEventListener('click', async () => {
+            await Promise.all([loadGallery(), loadImagesFolderList()]);
+        });
+
         document.getElementById('uploadBtn').addEventListener('click', async (event) => {
             event.preventDefault();
             const fileInput = document.getElementById('imageUpload');
@@ -833,7 +839,7 @@
                     }
                     alert('Upload successful! URL copied to clipboard.' + (autoFillTarget ? ' Pasted into the last-selected field.' : ''));
                     fileInput.value = '';
-                    loadGallery();
+                    await Promise.all([loadGallery(), loadImagesFolderList()]);
                     btn.textContent = 'Upload to Server';
                     return;
                 }
