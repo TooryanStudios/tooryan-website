@@ -1,0 +1,54 @@
+name: Upload Image to FTP
+
+on:
+  workflow_dispatch:
+    inputs:
+      filename:
+        description: 'Image filename'
+        required: true
+      content:
+        description: 'Base64 encoded image content'
+        required: true
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Decode and prepare image
+      run: |
+        mkdir -p temp_images
+        echo "${{ github.event.inputs.content }}" | base64 -d > "temp_images/${{ github.event.inputs.filename }}"
+        
+    - name: Upload image to FTP
+      uses: SamKirkland/FTP-Deploy-Action@4.3.0
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./temp_images/
+        server-dir: /public_html/images/
+        
+    - name: Update manifest.json on FTP
+      run: |
+        # Install lftp for advanced FTP operations
+        sudo apt-get update
+        sudo apt-get install -y lftp
+        
+        # Download current manifest
+        lftp -c "open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }}; get /public_html/images/manifest.json -o manifest.json" || echo '[]' > manifest.json
+        
+        # Add new filename to manifest
+        NEW_FILE="${{ github.event.inputs.filename }}"
+        jq --arg file "$NEW_FILE" '. += [$file] | unique' manifest.json > manifest_updated.json
+        
+        # Upload updated manifest
+        lftp -c "open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }}; put manifest_updated.json -o /public_html/images/manifest.json"
+        
+    - name: Cleanup
+      run: |
+        rm -rf temp_images
+        rm -f manifest.json manifest_updated.json
