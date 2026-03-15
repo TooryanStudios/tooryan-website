@@ -41,12 +41,41 @@
             backdrop-filter: blur(14px);
             position: relative;
             min-height: 100%;
-            overflow-y: auto;
+            overflow: auto;
             display: flex;
             flex-direction: column;
             font-size: 0.85rem;
             font-weight: 400;
             letter-spacing: 0.02em;
+        }
+        .panel-column,
+        #imagesList,
+        #imageGallery {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(152, 166, 199, 0.55) rgba(7, 16, 31, 0.25);
+        }
+        .panel-column::-webkit-scrollbar,
+        #imagesList::-webkit-scrollbar,
+        #imageGallery::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .panel-column::-webkit-scrollbar-track,
+        #imagesList::-webkit-scrollbar-track,
+        #imageGallery::-webkit-scrollbar-track {
+            background: rgba(7, 16, 31, 0.25);
+            border-radius: 999px;
+        }
+        .panel-column::-webkit-scrollbar-thumb,
+        #imagesList::-webkit-scrollbar-thumb,
+        #imageGallery::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(152, 166, 199, 0.7), rgba(122, 138, 176, 0.6));
+            border-radius: 999px;
+        }
+        .panel-column::-webkit-scrollbar-thumb:hover,
+        #imagesList::-webkit-scrollbar-thumb:hover,
+        #imageGallery::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(176, 192, 230, 0.85), rgba(140, 160, 206, 0.8));
         }
         .panel {
             background: rgba(16, 26, 49, 0.92);
@@ -317,6 +346,98 @@
             font-size: 0.84rem;
             line-height: 1.6;
         }
+        .image-field-tools {
+            margin-top: 8px;
+            display: grid;
+            gap: 8px;
+        }
+        .image-preview {
+            width: 100%;
+            min-height: 90px;
+            border: 1px dashed rgba(255,255,255,0.16);
+            border-radius: 12px;
+            background: rgba(4, 10, 20, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .image-preview img {
+            width: 100%;
+            height: 90px;
+            object-fit: cover;
+            display: block;
+        }
+        .image-preview-empty {
+            color: var(--muted);
+            font-size: 0.74rem;
+            text-align: center;
+            padding: 10px;
+        }
+        .image-field-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .image-picker-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 7, 14, 0.72);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .image-picker-modal.open {
+            display: flex;
+        }
+        .image-picker-panel {
+            width: min(820px, 100%);
+            max-height: min(78vh, 700px);
+            background: rgba(10, 18, 36, 0.96);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .image-picker-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .image-picker-grid {
+            overflow: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            padding-right: 4px;
+        }
+        .image-picker-item {
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.02);
+            border-radius: 10px;
+            padding: 6px;
+            cursor: pointer;
+            display: grid;
+            gap: 6px;
+        }
+        .image-picker-item img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .image-picker-item span {
+            font-size: 0.68rem;
+            color: var(--muted);
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
         @media (max-width: 1100px) {
             .wrap { grid-template-columns: 1fr; }
             .panel { position: static; max-height: none; }
@@ -339,7 +460,7 @@
                 <p>Site images: <strong id="imagesPath">Loading...</strong></p>
                 <div style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid rgba(255,255,255,0.08);">
                     <p style="margin-bottom:8px; font-weight:500;">Images in folder:</p>
-                    <div id="imagesList" style="font-size:0.8rem; color:var(--muted); max-height:150px; overflow-y:scroll; scrollbar-gutter:stable; padding-right:6px;">
+                    <div id="imagesList" style="font-size:0.8rem; color:var(--muted); max-height:150px; overflow:auto; scrollbar-gutter:stable both-edges; padding-right:6px; white-space:nowrap;">
                         <p>Scanning...</p>
                     </div>
                 </div>
@@ -350,8 +471,8 @@
                         <section class="group">
                             <h2>Image Manager</h2>
                             <div class="field">
-                                <label>Upload New Image</label>
-                                <input type="file" id="imageUpload" accept="image/*" style="padding:8px;">
+                                <label>Upload New Image(s)</label>
+                                <input type="file" id="imageUpload" accept="image/*" multiple style="padding:8px;">
                                 <button type="button" class="btn" id="uploadBtn" style="margin-top:8px; width:100%;">Upload to Server</button>
                             </div>
                             <div class="field" style="margin-top:15px;">
@@ -523,6 +644,10 @@
         const previewFrame = document.getElementById('previewFrame');
         const sideMenu = document.getElementById('sideMenu');
         let autoFillTarget = null;
+        let imagePickerModal = null;
+        let imagePickerGrid = null;
+        let imagePickerTargetInput = null;
+        let imagePickerTargetPreview = null;
 
         function isLongField(key) {
             return key.toLowerCase().includes('text') || key.toLowerCase().includes('description') || key.toLowerCase().includes('html') || key === 'quote';
@@ -575,6 +700,197 @@
             }
         }
 
+        function isImageField(key = '', label = '') {
+            const value = `${key} ${label}`.toLowerCase();
+            return value.includes('image') || value.includes('img');
+        }
+
+        function resolveImageUrl(value) {
+            const raw = String(value || '').trim();
+            if (!raw) return '';
+            if (/^(https?:\/\/|data:|blob:)/i.test(raw)) return raw;
+            if (raw.startsWith('./images/')) return `${imagesBasePath}${raw.replace('./images/', '')}`;
+            if (raw.startsWith('images/')) return `${imagesBasePath}${raw.replace('images/', '')}`;
+            try {
+                return new URL(raw, window.location.href).href;
+            } catch {
+                return raw;
+            }
+        }
+
+        function setImagePreview(previewEl, value) {
+            if (!previewEl) return;
+            const src = resolveImageUrl(value);
+            if (!src) {
+                previewEl.innerHTML = '<div class="image-preview-empty">No image selected</div>';
+                return;
+            }
+            previewEl.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = `${src}${src.includes('?') ? '&' : '?'}t=${Date.now()}`;
+            img.alt = 'Image preview';
+            img.onerror = () => {
+                previewEl.innerHTML = '<div class="image-preview-empty">Unable to load preview</div>';
+            };
+            previewEl.appendChild(img);
+        }
+
+        async function fetchAvailableImageNames() {
+            const cacheBuster = `t=${Date.now()}`;
+            try {
+                const manifestRes = await fetch(`${imagesBasePath}manifest.json?${cacheBuster}`, { cache: 'no-store' });
+                if (!manifestRes.ok) throw new Error('Manifest not available');
+                return normalizeImageNames(await manifestRes.json());
+            } catch (manifestErr) {
+                console.log('Manifest image list unavailable, trying API fallback:', manifestErr);
+            }
+            try {
+                const apiRes = await fetch(`/api/list_images?${cacheBuster}`, { cache: 'no-store' });
+                const data = await apiRes.json();
+                return normalizeImageNames(data?.images);
+            } catch {
+                return [];
+            }
+        }
+
+        function ensureImagePickerModal() {
+            if (imagePickerModal) return;
+            imagePickerModal = document.createElement('div');
+            imagePickerModal.className = 'image-picker-modal';
+            imagePickerModal.innerHTML = `
+                <div class="image-picker-panel">
+                    <div class="image-picker-head">
+                        <strong>Select Image from Library</strong>
+                        <button type="button" class="btn mini" data-image-picker-close>Close</button>
+                    </div>
+                    <div class="image-picker-grid" id="imagePickerGrid">
+                        <p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(imagePickerModal);
+            imagePickerGrid = imagePickerModal.querySelector('#imagePickerGrid');
+            imagePickerModal.addEventListener('click', (event) => {
+                if (event.target === imagePickerModal || event.target.matches('[data-image-picker-close]')) {
+                    imagePickerModal.classList.remove('open');
+                }
+            });
+        }
+
+        async function openImagePickerForInput(input, previewEl) {
+            ensureImagePickerModal();
+            imagePickerTargetInput = input;
+            imagePickerTargetPreview = previewEl;
+            imagePickerModal.classList.add('open');
+            imagePickerGrid.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>';
+            const imageNames = await fetchAvailableImageNames();
+            if (!imageNames.length) {
+                imagePickerGrid.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">No images found in library.</p>';
+                return;
+            }
+            imagePickerGrid.innerHTML = '';
+            imageNames.forEach((name) => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'image-picker-item';
+                item.innerHTML = `<img src="${imagesBasePath}${encodeURIComponent(name)}?t=${Date.now()}" alt="${name}"><span>${name}</span>`;
+                item.addEventListener('click', () => {
+                    const selectedUrl = `./images/${name}`;
+                    imagePickerTargetInput.value = selectedUrl;
+                    imagePickerTargetInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    autoFillTarget = imagePickerTargetInput;
+                    setImagePreview(imagePickerTargetPreview, selectedUrl);
+                    imagePickerModal.classList.remove('open');
+                });
+                imagePickerGrid.appendChild(item);
+            });
+        }
+
+        async function uploadSingleForImageField(input, previewEl, triggerBtn) {
+            const chooser = document.createElement('input');
+            chooser.type = 'file';
+            chooser.accept = 'image/*';
+            chooser.style.display = 'none';
+            document.body.appendChild(chooser);
+
+            chooser.addEventListener('change', async () => {
+                const file = chooser.files && chooser.files[0];
+                chooser.remove();
+                if (!file) return;
+
+                const previousValue = input.value;
+                const tempPreviewUrl = URL.createObjectURL(file);
+                setImagePreview(previewEl, tempPreviewUrl);
+                triggerBtn.disabled = true;
+                const previousLabel = triggerBtn.textContent;
+                triggerBtn.textContent = 'Uploading...';
+
+                try {
+                    const result = await uploadFilesBatch([file], (index, total) => {
+                        triggerBtn.textContent = `Uploading ${index}/${total}`;
+                    });
+                    const uploadedUrl = result.uploadedUrls[0];
+                    if (uploadedUrl) {
+                        input.value = uploadedUrl;
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                        autoFillTarget = input;
+                    } else {
+                        input.value = previousValue;
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                        const reason = result.failedFiles.join('\n') || 'Upload failed.';
+                        alert(`Image upload failed.\n\n${reason}`);
+                    }
+                } finally {
+                    URL.revokeObjectURL(tempPreviewUrl);
+                    setImagePreview(previewEl, input.value);
+                    triggerBtn.disabled = false;
+                    triggerBtn.textContent = previousLabel;
+                }
+            });
+
+            chooser.click();
+        }
+
+        function enhanceImageInput(input, labelText = '') {
+            if (!input || input.dataset.imageEnhanced === 'true') return;
+            input.dataset.imageEnhanced = 'true';
+
+            const tools = document.createElement('div');
+            tools.className = 'image-field-tools';
+
+            const preview = document.createElement('div');
+            preview.className = 'image-preview';
+            setImagePreview(preview, input.value);
+            input.addEventListener('input', () => {
+                setImagePreview(preview, input.value);
+            });
+
+            const actions = document.createElement('div');
+            actions.className = 'image-field-actions';
+
+            const libraryBtn = document.createElement('button');
+            libraryBtn.type = 'button';
+            libraryBtn.className = 'btn mini';
+            libraryBtn.textContent = 'From Library';
+            libraryBtn.addEventListener('click', () => openImagePickerForInput(input, preview));
+
+            const uploadBtn = document.createElement('button');
+            uploadBtn.type = 'button';
+            uploadBtn.className = 'btn mini';
+            uploadBtn.textContent = 'Upload New';
+            uploadBtn.addEventListener('click', () => uploadSingleForImageField(input, preview, uploadBtn));
+
+            actions.appendChild(libraryBtn);
+            actions.appendChild(uploadBtn);
+            tools.appendChild(preview);
+            tools.appendChild(actions);
+
+            input.insertAdjacentElement('afterend', tools);
+            if (isImageField(input.name || input.dataset.arrayField || '', labelText)) {
+                attachAutoFillListeners(input);
+            }
+        }
+
         function createArrayEntry(config, entryData = {}) {
             const card = document.createElement('div');
             card.className = 'array-entry';
@@ -615,6 +931,9 @@
                         updateTitle();
                     }
                 });
+                if (input.tagName === 'INPUT' && isImageField(field.key, field.label)) {
+                    enhanceImageInput(input, field.label);
+                }
                 card.appendChild(fieldWrapper);
             });
 
@@ -717,6 +1036,9 @@
                     input.value = content[key] || '';
                     field.appendChild(input);
                     attachAutoFillListeners(input);
+                    if (input.tagName === 'INPUT' && isImageField(key, label.textContent)) {
+                        enhanceImageInput(input, label.textContent);
+                    }
                     body.appendChild(field);
                 });
 
@@ -837,188 +1159,220 @@
             const gallery = document.getElementById('imageGallery');
             if (!gallery) return;
             gallery.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>';
-            const cacheBuster = `t=${Date.now()}`;
-
-            try {
-                const manifestRes = await fetch(`${imagesBasePath}manifest.json?${cacheBuster}`, { cache: 'no-store' });
-                if (!manifestRes.ok) throw new Error(`Manifest load failed with status ${manifestRes.status}`);
-                const imageNames = normalizeImageNames(await manifestRes.json());
-                renderGalleryImages(imageNames);
+            const imageNames = await fetchAvailableImageNames();
+            if (!imageNames.length) {
+                gallery.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">No images uploaded yet.</p>';
                 return;
-            } catch (manifestErr) {
-                console.log('Manifest gallery load failed, trying API fallback:', manifestErr);
             }
-
-            try {
-                const res = await fetch(`/api/list_images?${cacheBuster}`, { cache: 'no-store' });
-                const data = await res.json();
-                const imageNames = normalizeImageNames(data?.images);
-                renderGalleryImages(imageNames);
-            } catch (e) {
-                gallery.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">Unable to load images right now.</p>';
-            }
+            renderGalleryImages(imageNames);
         }
 
         document.getElementById('refreshImagesBtn').addEventListener('click', async () => {
             await Promise.all([loadGallery(), loadImagesFolderList()]);
         });
 
-        document.getElementById('uploadBtn').addEventListener('click', async (event) => {
-            event.preventDefault();
-            const fileInput = document.getElementById('imageUpload');
-            if(!fileInput.files[0]) {
-                alert('Please select an image first.');
-                return;
+        function getGitHubToken() {
+            let token = localStorage.getItem('github_token');
+            if (!token) {
+                token = prompt('Enter your GitHub Personal Access Token (with repo permissions):\n\nThis will be saved locally for future uploads.');
+                if (!token) return null;
+                localStorage.setItem('github_token', token);
             }
-            
-            const btn = document.getElementById('uploadBtn');
-            btn.textContent = 'Uploading...';
-            
-            const file = fileInput.files[0];
-            
-            // Try local server first (with timeout)
-            let useGitHub = false;
+            return token;
+        }
+
+        function readFileAsBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(String(e.target.result || '').split(',')[1] || '');
+                reader.onerror = () => reject(new Error('Failed to read file.'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function uploadSingleViaLocal(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 2000);
             try {
-                const formData = new FormData();
-                formData.append('image', file);
-                
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
-                
                 const res = await fetch('/api/upload', {
                     method: 'POST',
                     body: formData,
                     signal: controller.signal
                 });
-                clearTimeout(timeoutId);
-                
                 const data = await res.json();
-                if(data.status === 'success') {
-                    navigator.clipboard.writeText(data.url);
-                    if(autoFillTarget) {
-                        autoFillTarget.value = data.url;
-                    }
-                    alert('Upload successful! URL copied to clipboard.' + (autoFillTarget ? ' Pasted into the last-selected field.' : ''));
-                    fileInput.value = '';
-                    await Promise.all([loadGallery(), loadImagesFolderList()]);
-                    btn.textContent = 'Upload to Server';
-                    return;
+                if (data.status !== 'success' || !data.url) {
+                    throw new Error('Local upload returned unexpected response.');
                 }
-            } catch(e) {
-                // Local server not available, use GitHub Actions
-                console.log('Local server unavailable, using GitHub Actions...', e.message);
-                useGitHub = true;
+                return data.url;
+            } finally {
+                clearTimeout(timeoutId);
             }
-            
-            if (!useGitHub) {
-                btn.textContent = 'Upload to Server';
+        }
+
+        async function uploadSingleViaGitHub(file, token) {
+            const githubHeaders = {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github+json',
+                'Content-Type': 'application/json'
+            };
+            const base64Content = await readFileAsBase64(file);
+            const timestamp = Date.now();
+            const randomSuffix = Math.random().toString(36).slice(2, 6);
+            const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+            const filename = `${timestamp}_${randomSuffix}_${cleanName}`;
+
+            const imagePath = `images/${filename}`;
+            const uploadResponse = await fetch(`https://api.github.com/repos/TooryanStudios/tooryan-website/contents/${imagePath}`, {
+                method: 'PUT',
+                headers: githubHeaders,
+                body: JSON.stringify({
+                    message: `Upload image: ${filename}`,
+                    content: base64Content,
+                    branch: 'main'
+                })
+            });
+
+            if (!uploadResponse.ok) {
+                const uploadError = await uploadResponse.text();
+                throw new Error(uploadError);
+            }
+
+            const manifestResponse = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/images/manifest.json?ref=main', {
+                headers: githubHeaders
+            });
+
+            let manifestList = [];
+            let manifestSha = null;
+
+            if (manifestResponse.ok) {
+                const manifestData = await manifestResponse.json();
+                manifestSha = manifestData.sha || null;
+                const decoded = atob((manifestData.content || '').replace(/\n/g, ''));
+                try {
+                    manifestList = JSON.parse(decoded);
+                } catch {
+                    manifestList = [];
+                }
+            }
+
+            if (!manifestList.includes(filename)) {
+                manifestList.push(filename);
+            }
+
+            const manifestContent = btoa(JSON.stringify(manifestList, null, 2) + '\n');
+            const manifestBody = {
+                message: `Update image manifest for ${filename}`,
+                content: manifestContent,
+                branch: 'main'
+            };
+            if (manifestSha) manifestBody.sha = manifestSha;
+
+            const manifestUpdateResponse = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/images/manifest.json', {
+                method: 'PUT',
+                headers: githubHeaders,
+                body: JSON.stringify(manifestBody)
+            });
+
+            if (!manifestUpdateResponse.ok) {
+                const manifestError = await manifestUpdateResponse.text();
+                throw new Error(manifestError);
+            }
+
+            return `./images/${filename}`;
+        }
+
+        async function uploadFilesBatch(files, onProgress) {
+            let useGitHub = false;
+            let githubToken = null;
+            const uploadedUrls = [];
+            const failedFiles = [];
+
+            for (let i = 0; i < files.length; i += 1) {
+                const file = files[i];
+                if (typeof onProgress === 'function') {
+                    onProgress(i + 1, files.length, file);
+                }
+
+                try {
+                    let url;
+                    if (!useGitHub) {
+                        try {
+                            url = await uploadSingleViaLocal(file);
+                        } catch (localErr) {
+                            useGitHub = true;
+                            console.log('Local upload unavailable, switching to GitHub fallback:', localErr?.message || localErr);
+                        }
+                    }
+
+                    if (useGitHub) {
+                        if (!githubToken) {
+                            githubToken = getGitHubToken();
+                            if (!githubToken) throw new Error('GitHub token is required to continue uploads.');
+                        }
+                        url = await uploadSingleViaGitHub(file, githubToken);
+                    }
+
+                    uploadedUrls.push(url);
+                } catch (fileErr) {
+                    const errorMessage = fileErr?.message || 'Upload failed';
+                    failedFiles.push(`${file.name}: ${errorMessage}`);
+                    if (String(errorMessage).includes('GitHub token is required')) {
+                        break;
+                    }
+                    if (String(errorMessage).includes('Bad credentials')) {
+                        localStorage.removeItem('github_token');
+                        githubToken = null;
+                    }
+                }
+            }
+
+            return { uploadedUrls, failedFiles, usedGitHub: useGitHub };
+        }
+
+        document.getElementById('uploadBtn').addEventListener('click', async (event) => {
+            event.preventDefault();
+            const fileInput = document.getElementById('imageUpload');
+            const files = Array.from(fileInput.files || []);
+            if (files.length === 0) {
+                alert('Please select one or more images first.');
                 return;
             }
-            
-            // Fallback to GitHub Contents API (avoids workflow input size limits)
+
+            const btn = document.getElementById('uploadBtn');
+            btn.disabled = true;
+
             try {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const base64Content = e.target.result.split(',')[1];
-                    const timestamp = Date.now();
-                    const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-                    const filename = `${timestamp}_${cleanName}`;
-                    
-                    // Prompt for GitHub token (you can store this in localStorage for convenience)
-                    let token = localStorage.getItem('github_token');
-                    if (!token) {
-                        token = prompt('Enter your GitHub Personal Access Token (with repo permissions):\n\nThis will be saved locally for future uploads.');
-                        if (!token) {
-                            btn.textContent = 'Upload to Server';
-                            return;
-                        }
-                        localStorage.setItem('github_token', token);
+                const result = await uploadFilesBatch(files, (index, total) => {
+                    btn.textContent = `Uploading ${index}/${total}...`;
+                });
+                const uploadedUrls = result.uploadedUrls;
+                const failedFiles = result.failedFiles;
+
+                if (uploadedUrls.length > 0) {
+                    const clipboardText = uploadedUrls.join('\n');
+                    navigator.clipboard.writeText(clipboardText);
+                    if (autoFillTarget && uploadedUrls.length === 1) {
+                        autoFillTarget.value = uploadedUrls[0];
                     }
+                    fileInput.value = '';
+                    await Promise.all([loadGallery(), loadImagesFolderList()]);
 
-                    try {
-                        const githubHeaders = {
-                            'Authorization': `Bearer ${token}`,
-                            'Accept': 'application/vnd.github+json',
-                            'Content-Type': 'application/json'
-                        };
-
-                        const imagePath = `images/${filename}`;
-                        const uploadResponse = await fetch(`https://api.github.com/repos/TooryanStudios/tooryan-website/contents/${imagePath}`, {
-                            method: 'PUT',
-                            headers: githubHeaders,
-                            body: JSON.stringify({
-                                message: `Upload image: ${filename}`,
-                                content: base64Content,
-                                branch: 'main'
-                            })
-                        });
-
-                        if (!uploadResponse.ok) {
-                            const uploadError = await uploadResponse.text();
-                            throw new Error(uploadError);
-                        }
-
-                        const manifestResponse = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/images/manifest.json?ref=main', {
-                            headers: githubHeaders
-                        });
-
-                        let manifestList = [];
-                        let manifestSha = null;
-
-                        if (manifestResponse.ok) {
-                            const manifestData = await manifestResponse.json();
-                            manifestSha = manifestData.sha || null;
-                            const decoded = atob((manifestData.content || '').replace(/\n/g, ''));
-                            try {
-                                manifestList = JSON.parse(decoded);
-                            } catch {
-                                manifestList = [];
-                            }
-                        }
-
-                        if (!manifestList.includes(filename)) {
-                            manifestList.push(filename);
-                        }
-
-                        const manifestContent = btoa(JSON.stringify(manifestList, null, 2) + '\n');
-                        const manifestBody = {
-                            message: `Update image manifest for ${filename}`,
-                            content: manifestContent,
-                            branch: 'main'
-                        };
-                        if (manifestSha) {
-                            manifestBody.sha = manifestSha;
-                        }
-
-                        const manifestUpdateResponse = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/images/manifest.json', {
-                            method: 'PUT',
-                            headers: githubHeaders,
-                            body: JSON.stringify(manifestBody)
-                        });
-
-                        if (!manifestUpdateResponse.ok) {
-                            const manifestError = await manifestUpdateResponse.text();
-                            throw new Error(manifestError);
-                        }
-
-                        const imageUrl = `./images/${filename}`;
-                        navigator.clipboard.writeText(imageUrl);
-                        if (autoFillTarget) {
-                            autoFillTarget.value = imageUrl;
-                        }
-                        fileInput.value = '';
-                        await loadImagesFolderList();
-                        alert('Upload committed to GitHub. Deploy will publish it in ~1-2 minutes.\n\nURL copied: ' + imageUrl);
-                    } catch (apiError) {
-                        alert('GitHub upload failed. Check token scope (`repo`) and repository access.\n\nError: ' + apiError.message);
-                        localStorage.removeItem('github_token');
-                    } finally {
-                        btn.textContent = 'Upload to Server';
+                    let message = `${uploadedUrls.length} image(s) uploaded successfully. URL list copied to clipboard.`;
+                    if (result.usedGitHub) {
+                        message += '\n\nDeploy will publish GitHub uploads in ~1-2 minutes.';
                     }
-                };
-                reader.readAsDataURL(file);
-            } catch(e) {
-                alert('Upload failed: ' + e.message);
+                    if (failedFiles.length > 0) {
+                        message += `\n\n${failedFiles.length} failed:\n- ${failedFiles.join('\n- ')}`;
+                    }
+                    alert(message);
+                } else {
+                    alert(`No images were uploaded.\n\n${failedFiles.join('\n') || 'Unknown error.'}`);
+                }
+            } finally {
+                btn.disabled = false;
                 btn.textContent = 'Upload to Server';
             }
         });
