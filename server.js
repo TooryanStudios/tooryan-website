@@ -94,10 +94,13 @@ app.get('/api/list_images', (req, res) => {
         
         const images = files
             .filter(f => !f.startsWith('.'))
+            .filter(f => {
+                const ext = path.extname(f).toLowerCase();
+                return IMAGE_EXTENSIONS.has(ext);
+            })
             .sort((a, b) => {
                 return fs.statSync(`./images/${b}`).mtime.getTime() - fs.statSync(`./images/${a}`).mtime.getTime();
-            })
-            .map(f => `./images/${f}`);
+            });
             
         res.json({ status: 'success', images });
     });

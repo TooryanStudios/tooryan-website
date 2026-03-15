@@ -1079,6 +1079,7 @@
                             input.value = uploadedUrl;
                             input.dispatchEvent(new Event('input', { bubbles: true }));
                             autoFillTarget = input;
+                            await new Promise(resolve => setTimeout(resolve, 500));
                             await Promise.all([loadGallery(), loadImagesFolderList(), refreshLibraryManager()]);
                             showToast('Image uploaded and applied to field.', 'success');
                         } else {
@@ -1472,8 +1473,9 @@
                     if (confirmDelete.action !== 'delete') return;
                     try {
                         await deleteImageByName(name);
-                        showToast(`Deleted: ${name}`, 'success');
-                        await Promise.all([loadGallery(), loadImagesFolderList(), refreshLibraryManager()]);
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        await Promise.all([refreshLibraryManager(), loadGallery(), loadImagesFolderList()]);
+                        showToast(`Deleted image: ${name}`, 'success');
                     } catch (err) {
                         await showDialog({
                             title: 'Delete Failed',
@@ -2104,7 +2106,8 @@
                         autoFillTarget.value = uploadedUrls[0];
                     }
                     fileInput.value = '';
-                    await Promise.all([loadGallery(), loadImagesFolderList()]);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await Promise.all([loadGallery(), loadImagesFolderList(), refreshLibraryManager()]);
 
                     let message = `${uploadedUrls.length} image(s) uploaded successfully. URL list copied to clipboard.`;
                     if (result.usedGitHub) {
