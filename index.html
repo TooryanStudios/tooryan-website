@@ -608,225 +608,233 @@
 
     <!-- SCRIPTS -->
     <script>
-        // --- 1. Load Content from site-config.js ---
-        const content = window.getTooryanContent();
-        
-        // Map data to DOM
-        document.getElementById('heroEyebrow').innerText = content.heroEyebrow;
-        document.getElementById('heroTitle').innerHTML = content.heroTitleHtml;
-        document.getElementById('heroDescription').innerText = content.heroDescription;
-        document.getElementById('heroImage').src = content.heroImage;
+        async function initSite() {
+            // --- 1. Load Content from site-config.js (Async now) ---
+            const content = await window.getTooryanContent();
+            
+            // Map data to DOM
+            document.getElementById('heroEyebrow').innerText = content.heroEyebrow;
+            document.getElementById('heroTitle').innerHTML = content.heroTitleHtml;
+            document.getElementById('heroDescription').innerText = content.heroDescription;
+            document.getElementById('heroImage').src = content.heroImage;
 
-        // Vision
-        const visionTitleEl = document.getElementById('visionTitle');
-        // Split text for scrubbing effect
-        const words = content.visionTitle.split(' ');
-        visionTitleEl.innerHTML = words.map(w => `<span>${w} </span>`).join('');
-        document.getElementById('visionText').innerText = content.visionText;
+            // Vision
+            const visionTitleEl = document.getElementById('visionTitle');
+            // Split text for scrubbing effect
+            const words = content.visionTitle.split(' ');
+            visionTitleEl.innerHTML = words.map(w => `<span>${w} </span>`).join('');
+            document.getElementById('visionText').innerText = content.visionText;
 
-        // Floating Parallax Objects
-        if(document.getElementById('floatingImg1')) document.getElementById('floatingImg1').src = content.floatingImg1;
-        if(document.getElementById('floatingImg2')) document.getElementById('floatingImg2').src = content.floatingImg2;
-        if(document.getElementById('floatingImg3')) document.getElementById('floatingImg3').src = content.floatingImg3;
+            // Floating Parallax Objects
+            if(document.getElementById('floatingImg1')) document.getElementById('floatingImg1').src = content.floatingImg1;
+            if(document.getElementById('floatingImg2')) document.getElementById('floatingImg2').src = content.floatingImg2;
+            if(document.getElementById('floatingImg3')) document.getElementById('floatingImg3').src = content.floatingImg3;
 
-        // Works
-        document.getElementById('featuredHeading').innerText = content.featuredHeading;
-        document.getElementById('featuredText').innerText = content.featuredText;
-        
-        document.getElementById('featuredMainImage').src = content.featuredMainImage;
-        document.getElementById('featuredMainLabel').innerText = content.featuredMainLabel;
-        document.getElementById('featuredMainTitle').innerText = content.featuredMainTitle;
+            // Works
+            document.getElementById('featuredHeading').innerText = content.featuredHeading;
+            document.getElementById('featuredText').innerText = content.featuredText;
+            
+            document.getElementById('featuredMainImage').src = content.featuredMainImage;
+            document.getElementById('featuredMainLabel').innerText = content.featuredMainLabel;
+            document.getElementById('featuredMainTitle').innerText = content.featuredMainTitle;
 
-        document.getElementById('side1Image').src = content.side1Image;
-        document.getElementById('side1Title').innerText = content.side1Title;
-        document.getElementById('side1Text').innerText = content.side1Text;
+            document.getElementById('side1Image').src = content.side1Image;
+            document.getElementById('side1Title').innerText = content.side1Title;
+            document.getElementById('side1Text').innerText = content.side1Text;
 
-        document.getElementById('side2Image').src = content.side2Image;
-        document.getElementById('side2Title').innerText = content.side2Title;
-        document.getElementById('side2Text').innerText = content.side2Text;
+            document.getElementById('side2Image').src = content.side2Image;
+            document.getElementById('side2Title').innerText = content.side2Title;
+            document.getElementById('side2Text').innerText = content.side2Text;
 
-        // Services
-        document.getElementById('service1Title').innerText = content.service1Title;
-        document.getElementById('service1Text').innerText = content.service1Text;
-        document.getElementById('service2Title').innerText = content.service2Title;
-        document.getElementById('service2Text').innerText = content.service2Text;
-        document.getElementById('service3Title').innerText = content.service3Title;
-        document.getElementById('service3Text').innerText = content.service3Text;
+            // Services
+            document.getElementById('service1Title').innerText = content.service1Title;
+            document.getElementById('service1Text').innerText = content.service1Text;
+            document.getElementById('service2Title').innerText = content.service2Title;
+            document.getElementById('service2Text').innerText = content.service2Text;
+            document.getElementById('service3Title').innerText = content.service3Title;
+            document.getElementById('service3Text').innerText = content.service3Text;
 
-        // Footer
-        document.getElementById('contactTitle').innerText = content.contactTitle;
-        document.getElementById('contactText').innerText = content.contactText;
-        document.getElementById('contactPhone').innerText = content.phone;
-        document.getElementById('contactPhone').href = `tel:${content.phone.replace(/[^0-9+]/g, '')}`;
-        document.getElementById('contactEmail').innerText = content.email;
-        document.getElementById('contactEmail').href = `mailto:${content.email}`;
-        document.getElementById('navEmail').href = `mailto:${content.email}`;
-        document.getElementById('contactLocation').innerText = content.location;
+            // Footer
+            document.getElementById('contactTitle').innerText = content.contactTitle;
+            document.getElementById('contactText').innerText = content.contactText;
+            document.getElementById('contactPhone').innerText = content.phone;
+            document.getElementById('contactPhone').href = `tel:${content.phone.replace(/[^0-9+]/g, '')}`;
+            document.getElementById('contactEmail').innerText = content.email;
+            document.getElementById('contactEmail').href = `mailto:${content.email}`;
+            document.getElementById('navEmail').href = `mailto:${content.email}`;
+            document.getElementById('contactLocation').innerText = content.location;
 
 
-        // --- 2. Animations & Scroll (GSAP + Lenis) ---
-        gsap.registerPlugin(ScrollTrigger);
+            // --- 2. Animations & Scroll (GSAP + Lenis) ---
+            gsap.registerPlugin(ScrollTrigger);
 
-        // Smooth Scroll Setup
-        const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-            direction: 'vertical',
-            gestureDirection: 'vertical',
-            smooth: true,
-            mouseMultiplier: 1,
-            smoothTouch: false,
-            touchMultiplier: 2,
-            infinite: false,
-        });
-
-        function raf(time) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-        }
-        requestAnimationFrame(raf);
-
-        // Connect GSAP to Lenis
-        lenis.on('scroll', ScrollTrigger.update);
-        gsap.ticker.add((time) => { lenis.raf(time * 1000) });
-        gsap.ticker.lagSmoothing(0, 0);
-
-        // Custom Cursor
-        const cursor = document.getElementById('custom-cursor');
-        document.addEventListener('mousemove', (e) => {
-            gsap.to(cursor, {
-                x: e.clientX,
-                y: e.clientY,
-                duration: 0.1,
-                ease: 'power2.out'
+            // Smooth Scroll Setup
+            const lenis = new Lenis({
+                duration: 1.2,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                direction: 'vertical',
+                gestureDirection: 'vertical',
+                smooth: true,
+                mouseMultiplier: 1,
+                smoothTouch: false,
+                touchMultiplier: 2,
+                infinite: false,
             });
-        });
 
-        document.querySelectorAll('.hover-target').forEach(el => {
-            el.addEventListener('mouseenter', () => cursor.classList.add('active'));
-            el.addEventListener('mouseleave', () => cursor.classList.remove('active'));
-        });
+            function raf(time) {
+                lenis.raf(time);
+                requestAnimationFrame(raf);
+            }
+            requestAnimationFrame(raf);
 
-        // Preloader Animation
-        window.addEventListener('load', () => {
+            // Connect GSAP to Lenis
+            lenis.on('scroll', ScrollTrigger.update);
+            gsap.ticker.add((time) => { lenis.raf(time * 1000) });
+            gsap.ticker.lagSmoothing(0, 0);
+
+            // Custom Cursor
+            const cursor = document.getElementById('custom-cursor');
+            document.addEventListener('mousemove', (e) => {
+                gsap.to(cursor, {
+                    x: e.clientX,
+                    y: e.clientY,
+                    duration: 0.1,
+                    ease: 'power2.out'
+                });
+            });
+
+            document.querySelectorAll('.hover-target').forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('active'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('active'));
+            });
+
+            // Preloader Animation
             const tl = gsap.timeline();
             tl.to('#loader-span', { y: '0%', duration: 1, ease: 'power4.out' })
               .to('#loader-span', { y: '-100%', duration: 0.8, ease: 'power4.in', delay: 0.5 })
               .to('#loader', { height: 0, duration: 1, ease: 'expo.inOut' })
               .from('.hero-title', { y: 100, opacity: 0, duration: 1.5, ease: 'expo.out' }, "-=0.5")
               .from('.hero-eyebrow, .hero-desc', { y: 20, opacity: 0, duration: 1, stagger: 0.2, ease: 'power2.out' }, "-=1");
-        });
 
-        // Hero Parallax
-        gsap.to('.hero-bg', {
-            yPercent: 30,
-            ease: 'none',
-            scrollTrigger: {
-                trigger: '.hero',
-                start: 'top top',
-                end: 'bottom top',
-                scrub: true
-            }
-        });
-        gsap.to('.hero-content', {
-            y: 150,
-            opacity: 0,
-            ease: 'none',
-            scrollTrigger: {
-                trigger: '.hero',
-                start: 'top top',
-                end: 'bottom top',
-                scrub: true
-            }
-        });
+            // Hero Parallax
+            gsap.to('.hero-bg', {
+                yPercent: 30,
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: '.hero',
+                    start: 'top top',
+                    end: 'bottom top',
+                    scrub: true
+                }
+            });
+            gsap.to('.hero-content', {
+                y: 150,
+                opacity: 0,
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: '.hero',
+                    start: 'top top',
+                    end: 'bottom top',
+                    scrub: true
+                }
+            });
 
-        // Vision Text Scrub
-        gsap.to('#visionTitle span', {
-            opacity: 1,
-            stagger: 0.1,
-            ease: 'none',
-            scrollTrigger: {
-                trigger: '.vision',
-                start: 'top 60%',
-                end: 'center center',
-                scrub: 1
-            }
-        });
-        gsap.from('#visionText', {
-            opacity: 0,
-            y: 50,
-            scrollTrigger: {
-                trigger: '#visionText',
-                start: 'top 80%',
-                end: 'top 60%',
-                scrub: 1
-            }
-        });
-
-        // 3D Parallax Floating Objects
-        gsap.utils.toArray('.floating-obj').forEach(obj => {
-            const speed = parseFloat(obj.getAttribute('data-speed'));
-            gsap.to(obj, {
-                y: 400 * speed,
-                rotation: speed > 0 ? '+=30' : '-=30', // Rotate slightly as it moves
+            // Vision Text Scrub
+            gsap.to('#visionTitle span', {
+                opacity: 1,
+                stagger: 0.1,
                 ease: 'none',
                 scrollTrigger: {
                     trigger: '.vision',
-                    start: 'top bottom',
-                    end: 'bottom top',
+                    start: 'top 60%',
+                    end: 'center center',
                     scrub: 1
                 }
             });
-        });
-
-        // Horizontal Scroll
-        const horizontalContainer = document.getElementById('works-container');
-        const getScrollAmount = () => -(horizontalContainer.scrollWidth - window.innerWidth);
-        
-        gsap.to(horizontalContainer, {
-            x: getScrollAmount,
-            ease: 'none',
-            scrollTrigger: {
-                trigger: '.horizontal-wrapper',
-                start: 'top top',
-                end: () => `+=${getScrollAmount() * -1}`,
-                pin: true,
-                scrub: 1,
-                invalidateOnRefresh: true
-            }
-        });
-
-        // Stacking Cards (Services)
-        const cards = gsap.utils.toArray('.service-card');
-        cards.forEach((card, index) => {
-            gsap.to(card, {
-                scale: 0.9 - (0.05 * index),
-                opacity: 0.5,
+            gsap.from('#visionText', {
+                opacity: 0,
+                y: 50,
                 scrollTrigger: {
-                    trigger: card,
-                    start: 'top 15vh',
-                    endTrigger: '.cards-container',
-                    end: 'bottom top',
+                    trigger: '#visionText',
+                    start: 'top 80%',
+                    end: 'top 60%',
+                    scrub: 1
+                }
+            });
+
+            // 3D Parallax Floating Objects
+            gsap.utils.toArray('.floating-obj').forEach(obj => {
+                const speed = parseFloat(obj.getAttribute('data-speed'));
+                gsap.to(obj, {
+                    y: 400 * speed,
+                    rotation: speed > 0 ? '+=30' : '-=30', // Rotate slightly as it moves
+                    ease: 'none',
+                    scrollTrigger: {
+                        trigger: '.vision',
+                        start: 'top bottom',
+                        end: 'bottom top',
+                        scrub: 1
+                    }
+                });
+            });
+
+            // Horizontal Scroll
+            const horizontalContainer = document.getElementById('works-container');
+            const getScrollAmount = () => -(horizontalContainer.scrollWidth - window.innerWidth);
+            
+            gsap.to(horizontalContainer, {
+                x: getScrollAmount,
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: '.horizontal-wrapper',
+                    start: 'top top',
+                    end: () => `+=${getScrollAmount() * -1}`,
                     pin: true,
-                    pinSpacing: false,
-                    scrub: true,
+                    scrub: 1,
                     invalidateOnRefresh: true
                 }
             });
-        });
 
-        // Footer Reveal Parallax
-        gsap.from('.footer-content', {
-            y: -150,
-            opacity: 0,
-            ease: 'none',
-            scrollTrigger: {
-                trigger: '.footer',
-                start: 'top bottom',
-                end: 'bottom bottom',
-                scrub: true
-            }
-        });
+            // Stacking Cards (Services)
+            const cards = gsap.utils.toArray('.service-card');
+            cards.forEach((card, index) => {
+                gsap.to(card, {
+                    scale: 0.9 - (0.05 * index),
+                    opacity: 0.5,
+                    scrollTrigger: {
+                        trigger: card,
+                        start: 'top 15vh',
+                        endTrigger: '.cards-container',
+                        end: 'bottom top',
+                        pin: true,
+                        pinSpacing: false,
+                        scrub: true,
+                        invalidateOnRefresh: true
+                    }
+                });
+            });
+
+            // Footer Reveal Parallax
+            gsap.from('.footer-content', {
+                y: -150,
+                opacity: 0,
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: '.footer',
+                    start: 'top bottom',
+                    end: 'bottom bottom',
+                    scrub: true
+                }
+            });
+            
+            // Refresh ScrollTrigger once DOM is loaded and images are placed
+            setTimeout(() => {
+                ScrollTrigger.refresh();
+            }, 500);
+        }
+
+        // Initialize when window loads
+        window.addEventListener('load', initSite);
 
     </script>
 </body>

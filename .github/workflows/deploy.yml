@@ -28,6 +28,6 @@ jobs:
           set ftp:ssl-allow no;
           open $FTP_SERVER;
           user $FTP_USERNAME $FTP_PASSWORD;
-          mirror -R ./ /public_html/;
+          mirror -R -x ^data\.json$ -x ^uploads/ ./ /public_html/;
           quit
         "

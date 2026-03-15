@@ -132,14 +132,32 @@
     <div class="wrap">
         <aside class="panel">
             <h1>Tooryan Admin</h1>
-            <p class="lead">Edit text and image URLs, save locally, and preview the website instantly. Later we can connect this to server-side saving/upload.</p>
+            <p class="lead">Edit text and image URLs, save to server, and preview the website instantly.</p>
             <div class="toolbar">
                 <button class="btn primary" id="saveBtn">Save changes</button>
                 <button class="btn" id="resetBtn">Reset defaults</button>
                 <button class="btn" id="refreshBtn">Refresh preview</button>
             </div>
+            
+            <!-- Image Manager Section -->
+            <section class="group">
+                <h2>Image Manager</h2>
+                <div class="field">
+                    <label>Upload New Image</label>
+                    <input type="file" id="imageUpload" accept="image/*" style="padding:8px;">
+                    <button class="btn" id="uploadBtn" style="margin-top:8px; width:100%;">Upload to Server</button>
+                </div>
+                <div class="field" style="margin-top:15px;">
+                    <label>Browse Uploaded Images</label>
+                    <div id="imageGallery" style="display:flex; flex-wrap:wrap; gap:10px; max-height:200px; overflow-y:auto; background:rgba(0,0,0,0.5); padding:10px; border-radius:10px; border: 1px solid rgba(255,255,255,0.08);">
+                        <p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>
+                    </div>
+                    <p style="color:var(--muted); font-size:0.75rem; margin-top:5px;">Click an image to copy its URL, then paste it into any image field below.</p>
+                </div>
+            </section>
+
             <form id="adminForm"></form>
-            <p class="hint">Changes are stored in this browser using local storage. The live website reads the same saved content on this browser. Permanent server saving can be added next.</p>
+            <p class="hint">Changes are saved directly to data.json on the server.</p>
         </aside>
         <section class="preview">
             <iframe src="./index.html" id="previewFrame" title="Website preview"></iframe>
@@ -155,7 +173,7 @@
             Contact: ['contactTitle', 'contactText', 'phone', 'email', 'location']
         };
 
-        const content = window.getTooryanContent();
+        let content = {};
         const form = document.getElementById('adminForm');
         const previewFrame = document.getElementById('previewFrame');
 
@@ -214,21 +232,101 @@
             previewFrame.contentWindow.location.reload();
         }
 
-        document.getElementById('saveBtn').addEventListener('click', () => {
-            window.saveTooryanContent(collectForm());
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            document.getElementById('saveBtn').textContent = 'Saving...';
+            await window.saveTooryanContent(collectForm());
+            document.getElementById('saveBtn').textContent = 'Save changes';
             refreshPreview();
         });
 
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            window.resetTooryanContent();
-            Object.assign(content, window.getTooryanContent());
-            buildForm();
-            refreshPreview();
+        document.getElementById('resetBtn').addEventListener('click', async () => {
+            if(confirm('Are you sure you want to reset to default content?')) {
+                await window.resetTooryanContent();
+                content = await window.getTooryanContent();
+                buildForm();
+                refreshPreview();
+            }
         });
 
         document.getElementById('refreshBtn').addEventListener('click', refreshPreview);
 
-        buildForm();
+        // --- Image Manager Logic ---
+        async function loadGallery() {
+            const gallery = document.getElementById('imageGallery');
+            try {
+                const res = await fetch('api/list_images.php');
+                const data = await res.json();
+                if(data.status === 'success') {
+                    gallery.innerHTML = '';
+                    if(data.images.length === 0) {
+                        gallery.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">No images uploaded yet.</p>';
+                        return;
+                    }
+                    data.images.forEach(imgUrl => {
+                        const img = document.createElement('img');
+                        img.src = imgUrl;
+                        img.style.width = '60px';
+                        img.style.height = '60px';
+                        img.style.objectFit = 'cover';
+                        img.style.borderRadius = '5px';
+                        img.style.cursor = 'pointer';
+                        img.title = 'Click to copy URL';
+                        img.onclick = () => {
+                            navigator.clipboard.writeText(imgUrl).then(() => {
+                                alert('Copied URL: ' + imgUrl);
+                            });
+                        };
+                        gallery.appendChild(img);
+                    });
+                }
+            } catch(e) {
+                gallery.innerHTML = '<p style="color:red; font-size:0.8rem;">Failed to load images (Requires PHP server)</p>';
+            }
+        }
+
+        document.getElementById('uploadBtn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('imageUpload');
+            if(!fileInput.files[0]) {
+                alert('Please select an image first.');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            
+            const btn = document.getElementById('uploadBtn');
+            btn.textContent = 'Uploading...';
+            
+            try {
+                const res = await fetch('api/upload.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert('Upload successful! URL copied to clipboard.');
+                    navigator.clipboard.writeText(data.url);
+                    fileInput.value = '';
+                    loadGallery();
+                } else {
+                    alert('Upload failed: ' + data.message);
+                }
+            } catch(e) {
+                alert('Upload failed. Ensure you are running on a PHP server.');
+            }
+            
+            btn.textContent = 'Upload to Server';
+        });
+
+        // Initialize Async
+        async function initAdmin() {
+            content = await window.getTooryanContent();
+            buildForm();
+            loadGallery();
+        }
+        
+        initAdmin();
+
     </script>
 </body>
 </html>

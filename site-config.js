@@ -49,7 +49,19 @@ window.TOORYAN_DEFAULTS = {
     location: 'Oman'
 };
 
-window.getTooryanContent = function () {
+window.getTooryanContent = async function () {
+    try {
+        // Try to fetch from server first (add timestamp to bust cache)
+        const response = await fetch('data.json?t=' + new Date().getTime());
+        if (response.ok) {
+            const serverData = await response.json();
+            return { ...window.TOORYAN_DEFAULTS, ...serverData };
+        }
+    } catch (error) {
+        console.warn('Could not load data.json from server, falling back to local storage.', error);
+    }
+    
+    // Fallback to local storage
     try {
         const stored = localStorage.getItem('tooryanSiteContent');
         if (!stored) {
@@ -61,10 +73,32 @@ window.getTooryanContent = function () {
     }
 };
 
-window.saveTooryanContent = function (content) {
+window.saveTooryanContent = async function (content) {
+    // Save locally as a backup
     localStorage.setItem('tooryanSiteContent', JSON.stringify(content));
+    
+    // Attempt to save to server
+    try {
+        const response = await fetch('api/save.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(content)
+        });
+        
+        const result = await response.json();
+        if(result.status !== 'success') {
+            console.error('Server save failed:', result.message);
+            alert('Failed to save to server. Saved locally instead. Make sure you are running via a PHP server.');
+        }
+    } catch (error) {
+        console.error('Could not reach save.php', error);
+        alert('Could not connect to the server to save. Changes saved locally only. (Are you running PHP?)');
+    }
 };
 
-window.resetTooryanContent = function () {
+window.resetTooryanContent = async function () {
     localStorage.removeItem('tooryanSiteContent');
+    await window.saveTooryanContent(window.TOORYAN_DEFAULTS);
 };
