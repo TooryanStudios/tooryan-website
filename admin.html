@@ -50,31 +50,36 @@
         }
         .panel-column,
         #imagesList,
-        #imageGallery {
+        #imageGallery,
+        .image-picker-grid {
             scrollbar-width: thin;
             scrollbar-color: rgba(152, 166, 199, 0.55) rgba(7, 16, 31, 0.25);
         }
         .panel-column::-webkit-scrollbar,
         #imagesList::-webkit-scrollbar,
-        #imageGallery::-webkit-scrollbar {
+        #imageGallery::-webkit-scrollbar,
+        .image-picker-grid::-webkit-scrollbar {
             width: 5px;
             height: 5px;
         }
         .panel-column::-webkit-scrollbar-track,
         #imagesList::-webkit-scrollbar-track,
-        #imageGallery::-webkit-scrollbar-track {
+        #imageGallery::-webkit-scrollbar-track,
+        .image-picker-grid::-webkit-scrollbar-track {
             background: rgba(7, 16, 31, 0.25);
             border-radius: 999px;
         }
         .panel-column::-webkit-scrollbar-thumb,
         #imagesList::-webkit-scrollbar-thumb,
-        #imageGallery::-webkit-scrollbar-thumb {
+        #imageGallery::-webkit-scrollbar-thumb,
+        .image-picker-grid::-webkit-scrollbar-thumb {
             background: linear-gradient(180deg, rgba(152, 166, 199, 0.7), rgba(122, 138, 176, 0.6));
             border-radius: 999px;
         }
         .panel-column::-webkit-scrollbar-thumb:hover,
         #imagesList::-webkit-scrollbar-thumb:hover,
-        #imageGallery::-webkit-scrollbar-thumb:hover {
+        #imageGallery::-webkit-scrollbar-thumb:hover,
+        .image-picker-grid::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(180deg, rgba(176, 192, 230, 0.85), rgba(140, 160, 206, 0.8));
         }
         .panel {
@@ -469,6 +474,22 @@
             border-radius: 8px;
             font-weight: 500;
         }
+        .icon-btn {
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            font-size: 0.82rem;
+            padding: 5px 0;
+        }
+        .upload-progress {
+            margin-top: 6px;
+            font-size: 0.72rem;
+            color: var(--muted);
+            min-height: 1.2em;
+            letter-spacing: 0.01em;
+        }
         .crop-modal {
             position: fixed;
             inset: 0;
@@ -603,6 +624,7 @@
                                 <label>Upload New Image(s)</label>
                                 <input type="file" id="imageUpload" accept="image/*" multiple style="padding:8px;">
                                 <button type="button" class="btn" id="uploadBtn" style="margin-top:8px; width:100%;">Upload to Server</button>
+                                <div id="uploadProgress" class="upload-progress"></div>
                             </div>
                             <div class="field" style="margin-top:15px;">
                                 <label>Browse Uploaded Images</label>
@@ -784,6 +806,9 @@
         let autoFillTarget = null;
         let libraryManagerModal = null;
         let libraryManagerGrid = null;
+        let libraryBusyEl = null;
+        let librarySelectTargetInput = null;
+        let librarySelectTargetPreview = null;
         let cropModal = null;
         let cropCanvas = null;
         let cropZoomInput = null;
@@ -865,6 +890,18 @@
             window.setTimeout(() => {
                 toast.remove();
             }, timeoutMs);
+        }
+
+        function setUploadProgress(text = '') {
+            const progressEl = document.getElementById('uploadProgress');
+            if (!progressEl) return;
+            progressEl.textContent = text;
+        }
+
+        function setLibraryBusy(text = '', isBusy = false) {
+            if (!libraryBusyEl) return;
+            libraryBusyEl.textContent = text;
+            libraryBusyEl.style.color = isBusy ? '#f2cf86' : 'var(--muted)';
         }
 
         function showDialog({
@@ -1006,7 +1043,63 @@
             input.addEventListener('input', () => {
                 setImagePreview(preview, input.value);
             });
+            const actions = document.createElement('div');
+            actions.className = 'image-field-actions';
+            const libraryBtn = document.createElement('button');
+            libraryBtn.type = 'button';
+            libraryBtn.className = 'btn mini';
+            libraryBtn.textContent = 'Open Library';
+            libraryBtn.addEventListener('click', async () => {
+                librarySelectTargetInput = input;
+                librarySelectTargetPreview = preview;
+                await openLibraryManager();
+            });
+
+            const uploadBtn = document.createElement('button');
+            uploadBtn.type = 'button';
+            uploadBtn.className = 'btn mini';
+            uploadBtn.textContent = 'Upload';
+            uploadBtn.addEventListener('click', async () => {
+                const chooser = document.createElement('input');
+                chooser.type = 'file';
+                chooser.accept = 'image/*';
+                chooser.style.display = 'none';
+                document.body.appendChild(chooser);
+                chooser.addEventListener('change', async () => {
+                    const file = chooser.files && chooser.files[0];
+                    chooser.remove();
+                    if (!file) return;
+                    const prevLabel = uploadBtn.textContent;
+                    uploadBtn.disabled = true;
+                    uploadBtn.textContent = 'Uploading...';
+                    try {
+                        const result = await uploadFilesBatch([file], null);
+                        const uploadedUrl = result.uploadedUrls[0];
+                        if (uploadedUrl) {
+                            input.value = uploadedUrl;
+                            input.dispatchEvent(new Event('input', { bubbles: true }));
+                            autoFillTarget = input;
+                            await Promise.all([loadGallery(), loadImagesFolderList(), refreshLibraryManager()]);
+                            showToast('Image uploaded and applied to field.', 'success');
+                        } else {
+                            await showDialog({
+                                title: 'Upload Failed',
+                                message: result.failedFiles.join('\n') || 'Image upload failed.',
+                                buttons: [{ id: 'ok', label: 'OK', className: 'btn mini' }]
+                            });
+                        }
+                    } finally {
+                        uploadBtn.disabled = false;
+                        uploadBtn.textContent = prevLabel;
+                    }
+                });
+                chooser.click();
+            });
+
+            actions.appendChild(libraryBtn);
+            actions.appendChild(uploadBtn);
             tools.appendChild(preview);
+            tools.appendChild(actions);
             input.insertAdjacentElement('afterend', tools);
         }
 
@@ -1160,31 +1253,49 @@
             return true;
         }
 
-        async function updateGitHubManifestRemove(fileName, githubHeaders) {
+        async function syncGitHubManifest(token) {
+            const githubHeaders = {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github+json',
+                'Content-Type': 'application/json'
+            };
+            const listRes = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/images?ref=main', {
+                headers: githubHeaders
+            });
+            if (!listRes.ok) {
+                throw new Error('Unable to list images for manifest sync.');
+            }
+            const items = await listRes.json();
+            const imageNames = (Array.isArray(items) ? items : [])
+                .filter((item) => item && item.type === 'file')
+                .map((item) => String(item.name || ''))
+                .filter((name) => /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(name))
+                .sort((a, b) => a.localeCompare(b));
+
             const manifestResponse = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/images/manifest.json?ref=main', {
                 headers: githubHeaders
             });
-            if (!manifestResponse.ok) return;
-            const manifestData = await manifestResponse.json();
-            const manifestSha = manifestData.sha || null;
-            let manifestList = [];
-            try {
-                manifestList = JSON.parse(atob((manifestData.content || '').replace(/\n/g, '')));
-            } catch {
-                manifestList = [];
+
+            let manifestSha = null;
+            if (manifestResponse.ok) {
+                const manifestData = await manifestResponse.json();
+                manifestSha = manifestData.sha || null;
             }
-            manifestList = manifestList.filter((name) => name !== fileName);
+
             const manifestBody = {
-                message: `Remove ${fileName} from image manifest`,
-                content: btoa(JSON.stringify(manifestList, null, 2) + '\n'),
-                branch: 'main',
-                sha: manifestSha
+                message: 'Sync image manifest',
+                content: btoa(JSON.stringify(imageNames, null, 2) + '\n'),
+                branch: 'main'
             };
-            await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/images/manifest.json', {
+            if (manifestSha) manifestBody.sha = manifestSha;
+            const updateRes = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/images/manifest.json', {
                 method: 'PUT',
                 headers: githubHeaders,
                 body: JSON.stringify(manifestBody)
             });
+            if (!updateRes.ok) {
+                throw new Error('Failed to update image manifest on GitHub.');
+            }
         }
 
         async function deleteImageViaGitHub(fileName) {
@@ -1195,13 +1306,13 @@
                 'Accept': 'application/vnd.github+json',
                 'Content-Type': 'application/json'
             };
-            const pathName = `images/${fileName}`;
-            const existingRes = await fetch(`https://api.github.com/repos/TooryanStudios/tooryan-website/contents/${pathName}?ref=main`, {
+            const encodedPath = `images/${encodeURIComponent(fileName)}`;
+            const existingRes = await fetch(`https://api.github.com/repos/TooryanStudios/tooryan-website/contents/${encodedPath}?ref=main`, {
                 headers: githubHeaders
             });
             if (!existingRes.ok) throw new Error('Image not found in GitHub repository.');
             const existing = await existingRes.json();
-            const delRes = await fetch(`https://api.github.com/repos/TooryanStudios/tooryan-website/contents/${pathName}`, {
+            const delRes = await fetch(`https://api.github.com/repos/TooryanStudios/tooryan-website/contents/${encodedPath}`, {
                 method: 'DELETE',
                 headers: githubHeaders,
                 body: JSON.stringify({
@@ -1214,7 +1325,7 @@
                 const errorText = await delRes.text();
                 throw new Error(errorText);
             }
-            await updateGitHubManifestRemove(fileName, githubHeaders);
+            await syncGitHubManifest(token);
             return true;
         }
 
@@ -1243,6 +1354,7 @@
                             <button type="button" class="btn mini" data-library-close>Close</button>
                         </div>
                     </div>
+                    <div id="libraryBusy" class="upload-progress"></div>
                     <input id="libraryUploadInput" type="file" accept="image/*" multiple style="display:none;" />
                     <div class="image-picker-grid" id="libraryManagerGrid">
                         <p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>
@@ -1251,6 +1363,7 @@
             `;
             document.body.appendChild(libraryManagerModal);
             libraryManagerGrid = libraryManagerModal.querySelector('#libraryManagerGrid');
+            libraryBusyEl = libraryManagerModal.querySelector('#libraryBusy');
 
             const uploadInput = libraryManagerModal.querySelector('#libraryUploadInput');
             libraryManagerModal.querySelector('#libraryUploadTrigger').addEventListener('click', () => uploadInput.click());
@@ -1259,18 +1372,33 @@
                 const files = Array.from(uploadInput.files || []);
                 uploadInput.value = '';
                 if (!files.length) return;
-                const result = await uploadFilesBatch(files);
-                await Promise.all([loadGallery(), loadImagesFolderList(), refreshLibraryManager()]);
-                let msg = `${result.uploadedUrls.length} image(s) uploaded from Library Manager.`;
-                if (result.failedFiles.length) {
-                    msg += `\n\nFailed:\n- ${result.failedFiles.join('\n- ')}`;
+                const uploadBtn = libraryManagerModal.querySelector('#libraryUploadTrigger');
+                const refreshBtn = libraryManagerModal.querySelector('#libraryRefreshBtn');
+                uploadBtn.disabled = true;
+                refreshBtn.disabled = true;
+                setLibraryBusy(`Uploading 0/${files.length}...`, true);
+                try {
+                    const result = await uploadFilesBatch(files, (index, total) => {
+                        setLibraryBusy(`Uploading ${index}/${total}...`, true);
+                    });
+                    await Promise.all([loadGallery(), loadImagesFolderList(), refreshLibraryManager()]);
+                    let msg = `${result.uploadedUrls.length} image(s) uploaded from Library Manager.`;
+                    if (result.failedFiles.length) {
+                        msg += `\n\nFailed:\n- ${result.failedFiles.join('\n- ')}`;
+                    }
+                    setLibraryBusy(result.failedFiles.length ? 'Upload finished with warnings.' : 'Upload complete.', false);
+                    showToast(msg, result.failedFiles.length ? 'warning' : 'success', 4200);
+                } finally {
+                    uploadBtn.disabled = false;
+                    refreshBtn.disabled = false;
                 }
-                showToast(msg, result.failedFiles.length ? 'warning' : 'success', 4200);
             });
 
             libraryManagerModal.addEventListener('click', (event) => {
                 if (event.target === libraryManagerModal || event.target.matches('[data-library-close]')) {
                     libraryManagerModal.classList.remove('open');
+                    librarySelectTargetInput = null;
+                    librarySelectTargetPreview = null;
                 }
             });
         }
@@ -1292,9 +1420,9 @@
                     <img src="${imagesBasePath}${encodeURIComponent(name)}?t=${Date.now()}" alt="${name}">
                     <span>${name}</span>
                     <div class="library-item-actions">
-                        <button type="button" class="btn mini" data-lib-copy>Copy</button>
-                        <button type="button" class="btn mini" data-lib-crop>Crop</button>
-                        <button type="button" class="btn mini" data-lib-delete>Del</button>
+                        <button type="button" class="btn mini icon-btn" data-lib-copy title="Copy URL" aria-label="Copy URL">⧉</button>
+                        <button type="button" class="btn mini icon-btn" data-lib-crop title="Crop" aria-label="Crop image">✂</button>
+                        <button type="button" class="btn mini icon-btn" data-lib-delete title="Delete" aria-label="Delete image">🗑</button>
                     </div>
                 `;
 
@@ -1302,6 +1430,27 @@
                     const url = `./images/${name}`;
                     navigator.clipboard.writeText(url).then(() => showToast(`Copied URL: ${url}`, 'success'));
                 });
+
+                const imageEl = item.querySelector('img');
+                const nameEl = item.querySelector('span');
+                const applyToField = () => {
+                    if (!librarySelectTargetInput) return;
+                    const selectedUrl = `./images/${name}`;
+                    librarySelectTargetInput.value = selectedUrl;
+                    librarySelectTargetInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    autoFillTarget = librarySelectTargetInput;
+                    if (librarySelectTargetPreview) {
+                        setImagePreview(librarySelectTargetPreview, selectedUrl);
+                    }
+                    showToast(`Applied image: ${name}`, 'success');
+                    librarySelectTargetInput = null;
+                    librarySelectTargetPreview = null;
+                    libraryManagerModal.classList.remove('open');
+                };
+                imageEl.style.cursor = 'pointer';
+                nameEl.style.cursor = 'pointer';
+                imageEl.addEventListener('click', applyToField);
+                nameEl.addEventListener('click', applyToField);
 
                 item.querySelector('[data-lib-crop]').addEventListener('click', async () => {
                     try {
@@ -1342,6 +1491,11 @@
             ensureLibraryManagerModal();
             ensureCropModal();
             libraryManagerModal.classList.add('open');
+            if (librarySelectTargetInput) {
+                setLibraryBusy('Click an image thumbnail to apply it to the selected field.', false);
+            } else {
+                setLibraryBusy('', false);
+            }
             await refreshLibraryManager();
         }
 
@@ -1736,47 +1890,6 @@
                 throw new Error(uploadError);
             }
 
-            const manifestResponse = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/images/manifest.json?ref=main', {
-                headers: githubHeaders
-            });
-
-            let manifestList = [];
-            let manifestSha = null;
-
-            if (manifestResponse.ok) {
-                const manifestData = await manifestResponse.json();
-                manifestSha = manifestData.sha || null;
-                const decoded = atob((manifestData.content || '').replace(/\n/g, ''));
-                try {
-                    manifestList = JSON.parse(decoded);
-                } catch {
-                    manifestList = [];
-                }
-            }
-
-            if (!manifestList.includes(filename)) {
-                manifestList.push(filename);
-            }
-
-            const manifestContent = btoa(JSON.stringify(manifestList, null, 2) + '\n');
-            const manifestBody = {
-                message: `Update image manifest for ${filename}`,
-                content: manifestContent,
-                branch: 'main'
-            };
-            if (manifestSha) manifestBody.sha = manifestSha;
-
-            const manifestUpdateResponse = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/images/manifest.json', {
-                method: 'PUT',
-                headers: githubHeaders,
-                body: JSON.stringify(manifestBody)
-            });
-
-            if (!manifestUpdateResponse.ok) {
-                const manifestError = await manifestUpdateResponse.text();
-                throw new Error(manifestError);
-            }
-
             return `./images/${filename}`;
         }
 
@@ -1858,6 +1971,14 @@
                 }
             }
 
+            if (useGitHub && uploadedUrls.length > 0 && githubToken) {
+                try {
+                    await syncGitHubManifest(githubToken);
+                } catch (manifestErr) {
+                    failedFiles.push(`Manifest sync warning: ${manifestErr?.message || manifestErr}`);
+                }
+            }
+
             return { uploadedUrls, failedFiles, usedGitHub: useGitHub };
         }
 
@@ -1872,10 +1993,12 @@
 
             const btn = document.getElementById('uploadBtn');
             btn.disabled = true;
+            setUploadProgress(`Uploading 0/${files.length}...`);
 
             try {
                 const result = await uploadFilesBatch(files, (index, total) => {
                     btn.textContent = `Uploading ${index}/${total}...`;
+                    setUploadProgress(`Uploading ${index}/${total}...`);
                 });
                 const uploadedUrls = result.uploadedUrls;
                 const failedFiles = result.failedFiles;
@@ -1901,16 +2024,19 @@
                         message,
                         buttons: [{ id: 'ok', label: 'OK', className: 'btn mini' }]
                     });
+                    setUploadProgress('Upload complete.');
                 } else {
                     await showDialog({
                         title: 'Upload Result',
                         message: `No images were uploaded.\n\n${failedFiles.join('\n') || 'Unknown error.'}`,
                         buttons: [{ id: 'ok', label: 'OK', className: 'btn mini' }]
                     });
+                    setUploadProgress('Upload finished with no successful files.');
                 }
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Upload to Server';
+                window.setTimeout(() => setUploadProgress(''), 2500);
             }
         });
 

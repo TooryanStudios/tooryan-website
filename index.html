@@ -807,6 +807,22 @@
 
     <!-- SCRIPTS -->
     <script>
+        function resolveContentImageUrl(value) {
+            const raw = String(value || '').trim();
+            if (!raw) return '';
+            if (/^(https?:\/\/|data:|blob:)/i.test(raw)) return raw;
+            if (raw.startsWith('./images/')) {
+                return `./images/${raw.replace('./images/', '')}`;
+            }
+            if (raw.startsWith('images/')) {
+                return `./images/${raw.replace('images/', '')}`;
+            }
+            if (raw.startsWith('/images/')) {
+                return raw;
+            }
+            return `./images/${raw}`;
+        }
+
         async function initSite() {
             // --- 1. Load Content from site-config.js (Async now) ---
             const content = await window.getTooryanContent();
@@ -823,7 +839,9 @@
 
             ['floatingImg1','floatingImg2','floatingImg3'].forEach((id) => {
                 const el = document.getElementById(id);
-                if(el && content[id]) { el.src = content[id]; }
+                if (el && content[id]) {
+                    el.src = resolveContentImageUrl(content[id]);
+                }
             });
 
             document.getElementById('featuredHeading').innerText = content.featuredHeading;
@@ -835,7 +853,8 @@
                 const card = document.createElement('div');
                 card.className = 'work-card hover-target';
                 const img = document.createElement('img');
-                img.src = slide.image || '';
+                const resolvedSlideImage = resolveContentImageUrl(slide.image);
+                img.src = resolvedSlideImage;
                 img.alt = slide.title || 'Featured Work';
                 card.appendChild(img);
 

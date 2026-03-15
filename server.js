@@ -5,12 +5,13 @@ const multer = require('multer');
 
 const app = express();
 const PORT = 8000;
+const IMAGE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.avif']);
 
 const upload = multer({ 
     storage: multer.memoryStorage(),
     fileFilter: (req, file, cb) => {
         const ext = path.extname(file.originalname).toLowerCase();
-        if(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(ext)) {
+        if (IMAGE_EXTENSIONS.has(ext)) {
             cb(null, true);
         } else {
             cb(new Error('Only images are allowed'));
@@ -29,6 +30,7 @@ if (!fs.existsSync('./images')) {
 if (!fs.existsSync('./data.json')) {
     fs.writeFileSync('./data.json', '{}');
 }
+syncLocalManifest();
 
 // API: Save JSON
 app.post('/api/save', (req, res) => {
@@ -58,6 +60,7 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
 
     try {
         fs.writeFileSync(targetPath, req.file.buffer);
+        syncLocalManifest();
         const relativeUrl = './images/' + filename;
         res.json({ status: 'success', url: relativeUrl, filename, overwritten: overwrite && fs.existsSync(targetPath) });
     } catch (err) {
@@ -67,7 +70,7 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
 
 // API: Delete Image
 app.post('/api/delete_image', (req, res) => {
-    const filename = fileNameSafe(req.body?.filename || '');
+    const filename = fileNameForDelete(req.body?.filename || '');
     if (!filename) {
         return res.status(400).json({ status: 'error', message: 'Filename is required' });
     }
@@ -77,6 +80,7 @@ app.post('/api/delete_image', (req, res) => {
     }
     try {
         fs.unlinkSync(targetPath);
+        syncLocalManifest();
         res.json({ status: 'success', filename });
     } catch (err) {
         res.status(500).json({ status: 'error', message: err.message });
@@ -109,4 +113,32 @@ function fileNameSafe(name) {
         .trim()
         .replace(/[^a-zA-Z0-9._-]/g, '_')
         .replace(/^\.+/, '');
+}
+
+function fileNameForDelete(name) {
+    const raw = String(name || '').trim();
+    if (!raw) return '';
+    if (raw.includes('/') || raw.includes('\\') || raw.includes('..')) return '';
+    return raw;
+}
+
+function listImageFileNames() {
+    return fs.readdirSync('./images/')
+        .filter((file) => {
+            if (!file || file.startsWith('.')) return false;
+            const ext = path.extname(file).toLowerCase();
+            return IMAGE_EXTENSIONS.has(ext);
+        })
+        .sort((a, b) => {
+            return fs.statSync(`./images/${b}`).mtime.getTime() - fs.statSync(`./images/${a}`).mtime.getTime();
+        });
+}
+
+function syncLocalManifest() {
+    try {
+        const imageNames = listImageFileNames();
+        fs.writeFileSync('./images/manifest.json', JSON.stringify(imageNames, null, 2) + '\n');
+    } catch (err) {
+        console.log('Failed to sync local image manifest:', err.message);
+    }
 }
