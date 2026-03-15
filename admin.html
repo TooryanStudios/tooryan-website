@@ -339,7 +339,7 @@
                 <p>Site images: <strong id="imagesPath">Loading...</strong></p>
                 <div style="margin-top:12px; padding:12px; background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid rgba(255,255,255,0.08);">
                     <p style="margin-bottom:8px; font-weight:500;">Images in folder:</p>
-                    <div id="imagesList" style="font-size:0.8rem; color:var(--muted); max-height:150px; overflow-y:auto;">
+                    <div id="imagesList" style="font-size:0.8rem; color:var(--muted); max-height:150px; overflow-y:scroll; scrollbar-gutter:stable; padding-right:6px;">
                         <p>Scanning...</p>
                     </div>
                 </div>
@@ -383,6 +383,13 @@
     <script>
         let imagesBasePath = './images/';
 
+        function normalizeImageNames(items) {
+            if (!Array.isArray(items)) return [];
+            return items
+                .map((img) => String(img || '').replace('./images/', '').trim())
+                .filter(Boolean);
+        }
+
         async function loadImagesFolderList() {
             const imagesListEl = document.getElementById('imagesList');
             if (!imagesListEl) return;
@@ -392,7 +399,7 @@
             try {
                 const res = await fetch(`/api/list_images?${cacheBuster}`, { cache: 'no-store' });
                 const data = await res.json();
-                const images = Array.isArray(data?.images) ? data.images.map((img) => img.replace('./images/', '')) : [];
+                const images = normalizeImageNames(data?.images);
                 if (images.length > 0) {
                     imagesListEl.innerHTML = images.map((img) => `<div style="margin-bottom:4px;">• ${img}</div>`).join('');
                     return;
@@ -401,8 +408,8 @@
             } catch (err) {
                 try {
                     const res = await fetch(`${imagesBasePath}manifest.json?${cacheBuster}`, { cache: 'no-store' });
-                    const images = await res.json();
-                    if (Array.isArray(images) && images.length > 0) {
+                    const images = normalizeImageNames(await res.json());
+                    if (images.length > 0) {
                         imagesListEl.innerHTML = images.map((img) => `<div style="margin-bottom:4px;">• ${img}</div>`).join('');
                     } else {
                         imagesListEl.innerHTML = '<p style="color:var(--muted);">No images found</p>';
