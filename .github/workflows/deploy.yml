@@ -13,6 +13,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Update version file
+      run: |
+        BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
+        COMMIT_SHA="${GITHUB_SHA:0:7}"
+        TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        echo "{\"build\":\"1.0.${BUILD_NUMBER}\",\"timestamp\":\"${TIMESTAMP}\",\"commit\":\"${COMMIT_SHA}\"}" > version.json
+      
     - name: Setup FTP client
       run: |
         sudo apt-get update
