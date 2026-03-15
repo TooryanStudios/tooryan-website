@@ -438,6 +438,119 @@
             line-height: 1.35;
             overflow-wrap: anywhere;
         }
+        .library-item-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .library-item-actions .btn {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .crop-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 7, 14, 0.74);
+            z-index: 10030;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .crop-modal.open {
+            display: flex;
+        }
+        .crop-panel {
+            width: min(640px, 100%);
+            background: rgba(10, 18, 36, 0.98);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            padding: 14px;
+            display: grid;
+            gap: 10px;
+        }
+        .crop-panel canvas {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(0,0,0,0.4);
+        }
+        .crop-controls {
+            display: grid;
+            gap: 8px;
+        }
+        .crop-control-row {
+            display: grid;
+            grid-template-columns: 80px 1fr;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+        .app-toast-stack {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 10020;
+            display: grid;
+            gap: 8px;
+            width: min(360px, calc(100vw - 32px));
+        }
+        .app-toast {
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(8, 16, 32, 0.95);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+        }
+        .app-toast.success { border-color: rgba(76, 210, 120, 0.5); }
+        .app-toast.warning { border-color: rgba(210, 165, 76, 0.5); }
+        .app-toast.error { border-color: rgba(255, 99, 99, 0.55); }
+        .app-dialog-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 10010;
+            background: rgba(3, 7, 14, 0.74);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .app-dialog-backdrop.open {
+            display: flex;
+        }
+        .app-dialog {
+            width: min(520px, 100%);
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(10, 18, 36, 0.98);
+            border-radius: 16px;
+            padding: 14px;
+            display: grid;
+            gap: 10px;
+        }
+        .app-dialog h3 {
+            font-size: 1rem;
+            margin: 0;
+        }
+        .app-dialog p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+            white-space: pre-wrap;
+        }
+        .app-dialog input {
+            width: 100%;
+        }
+        .app-dialog-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 4px;
+        }
         @media (max-width: 1100px) {
             .wrap { grid-template-columns: 1fr; }
             .panel { position: static; max-height: none; }
@@ -477,7 +590,10 @@
                             </div>
                             <div class="field" style="margin-top:15px;">
                                 <label>Browse Uploaded Images</label>
-                                <button type="button" class="btn mini" id="refreshImagesBtn" style="margin-bottom:8px;">Refresh Images Folder</button>
+                                <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+                                    <button type="button" class="btn mini" id="refreshImagesBtn">Refresh Images Folder</button>
+                                    <button type="button" class="btn mini" id="manageLibraryBtn">Manage Library</button>
+                                </div>
                                 <div id="imageGallery" style="display:flex; flex-wrap:wrap; gap:10px; max-height:200px; overflow-y:auto; background:rgba(0,0,0,0.5); padding:10px; border-radius:10px; border: 1px solid rgba(255,255,255,0.08);">
                                     <p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>
                                 </div>
@@ -644,10 +760,18 @@
         const previewFrame = document.getElementById('previewFrame');
         const sideMenu = document.getElementById('sideMenu');
         let autoFillTarget = null;
-        let imagePickerModal = null;
-        let imagePickerGrid = null;
-        let imagePickerTargetInput = null;
-        let imagePickerTargetPreview = null;
+        let libraryManagerModal = null;
+        let libraryManagerGrid = null;
+        let cropModal = null;
+        let cropCanvas = null;
+        let cropZoomInput = null;
+        let cropXInput = null;
+        let cropYInput = null;
+        let cropTargetFileName = '';
+        let cropSourceImage = null;
+        let appToastStack = null;
+        let appDialogBackdrop = null;
+        let appDialogResolver = null;
 
         function isLongField(key) {
             return key.toLowerCase().includes('text') || key.toLowerCase().includes('description') || key.toLowerCase().includes('html') || key === 'quote';
@@ -655,6 +779,120 @@
 
         function prettify(key) {
             return key.replace(/([A-Z])/g, ' $1').replace(/^./, (char) => char.toUpperCase());
+        }
+
+        function sanitizeFileName(name) {
+            return String(name || '')
+                .trim()
+                .replace(/[^a-zA-Z0-9._-]/g, '_')
+                .replace(/^\.+/, '');
+        }
+
+        function splitFileNameParts(fileName) {
+            const safe = sanitizeFileName(fileName);
+            const idx = safe.lastIndexOf('.');
+            if (idx <= 0) return { base: safe, ext: '' };
+            return { base: safe.slice(0, idx), ext: safe.slice(idx) };
+        }
+
+        function uniqueFileName(fileName, existingNameSet) {
+            const { base, ext } = splitFileNameParts(fileName);
+            let candidate = `${base}_${Date.now()}${ext}`;
+            let counter = 1;
+            while (existingNameSet.has(candidate)) {
+                candidate = `${base}_${Date.now()}_${counter}${ext}`;
+                counter += 1;
+            }
+            return candidate;
+        }
+
+        function ensureAppUi() {
+            if (!appToastStack) {
+                appToastStack = document.createElement('div');
+                appToastStack.className = 'app-toast-stack';
+                document.body.appendChild(appToastStack);
+            }
+            if (!appDialogBackdrop) {
+                appDialogBackdrop = document.createElement('div');
+                appDialogBackdrop.className = 'app-dialog-backdrop';
+                appDialogBackdrop.innerHTML = `
+                    <div class="app-dialog" role="dialog" aria-modal="true">
+                        <h3 id="appDialogTitle">Notice</h3>
+                        <p id="appDialogMessage"></p>
+                        <input id="appDialogInput" style="display:none;" />
+                        <div class="app-dialog-actions" id="appDialogActions"></div>
+                    </div>
+                `;
+                document.body.appendChild(appDialogBackdrop);
+                appDialogBackdrop.addEventListener('click', (event) => {
+                    if (event.target === appDialogBackdrop && appDialogResolver) {
+                        appDialogResolver({ action: 'cancel', value: '' });
+                        appDialogResolver = null;
+                        appDialogBackdrop.classList.remove('open');
+                    }
+                });
+            }
+        }
+
+        function showToast(message, tone = 'success', timeoutMs = 2800) {
+            ensureAppUi();
+            const toast = document.createElement('div');
+            toast.className = `app-toast ${tone}`;
+            toast.textContent = message;
+            appToastStack.appendChild(toast);
+            window.setTimeout(() => {
+                toast.remove();
+            }, timeoutMs);
+        }
+
+        function showDialog({
+            title = 'Notice',
+            message = '',
+            buttons = [{ id: 'ok', label: 'OK', className: 'btn mini primary' }],
+            input = null
+        }) {
+            ensureAppUi();
+            const titleEl = appDialogBackdrop.querySelector('#appDialogTitle');
+            const msgEl = appDialogBackdrop.querySelector('#appDialogMessage');
+            const inputEl = appDialogBackdrop.querySelector('#appDialogInput');
+            const actionsEl = appDialogBackdrop.querySelector('#appDialogActions');
+            titleEl.textContent = title;
+            msgEl.textContent = message;
+            actionsEl.innerHTML = '';
+            inputEl.style.display = 'none';
+            inputEl.type = 'text';
+            inputEl.value = '';
+            inputEl.placeholder = '';
+
+            if (input) {
+                inputEl.style.display = 'block';
+                inputEl.type = input.type === 'password' ? 'password' : 'text';
+                inputEl.placeholder = input.placeholder || '';
+                inputEl.value = input.value || '';
+            }
+
+            return new Promise((resolve) => {
+                appDialogResolver = resolve;
+                buttons.forEach((btn) => {
+                    const actionBtn = document.createElement('button');
+                    actionBtn.type = 'button';
+                    actionBtn.className = btn.className || 'btn mini';
+                    actionBtn.textContent = btn.label;
+                    actionBtn.addEventListener('click', () => {
+                        const result = { action: btn.id, value: inputEl.value.trim() };
+                        appDialogBackdrop.classList.remove('open');
+                        if (appDialogResolver) {
+                            appDialogResolver(result);
+                            appDialogResolver = null;
+                        }
+                    });
+                    actionsEl.appendChild(actionBtn);
+                });
+                appDialogBackdrop.classList.add('open');
+                if (input) {
+                    window.setTimeout(() => inputEl.focus(), 0);
+                }
+            });
         }
 
         function setGroupExpanded(group, expand = true) {
@@ -753,142 +991,321 @@
             }
         }
 
-        function ensureImagePickerModal() {
-            if (imagePickerModal) return;
-            imagePickerModal = document.createElement('div');
-            imagePickerModal.className = 'image-picker-modal';
-            imagePickerModal.innerHTML = `
+        function getImageMimeType(fileName) {
+            const lower = String(fileName || '').toLowerCase();
+            if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+            if (lower.endsWith('.webp')) return 'image/webp';
+            if (lower.endsWith('.gif')) return 'image/gif';
+            if (lower.endsWith('.png')) return 'image/png';
+            return 'image/png';
+        }
+
+        function ensureCropModal() {
+            if (cropModal) return;
+            cropModal = document.createElement('div');
+            cropModal.className = 'crop-modal';
+            cropModal.innerHTML = `
+                <div class="crop-panel">
+                    <div class="image-picker-head">
+                        <strong id="cropTitle">Crop Image</strong>
+                        <button type="button" class="btn mini" data-crop-close>Close</button>
+                    </div>
+                    <canvas id="cropCanvas" width="1024" height="768"></canvas>
+                    <div class="crop-controls">
+                        <div class="crop-control-row"><label>Zoom</label><input id="cropZoom" type="range" min="1" max="3" step="0.01" value="1"></div>
+                        <div class="crop-control-row"><label>Offset X</label><input id="cropX" type="range" min="-100" max="100" step="1" value="0"></div>
+                        <div class="crop-control-row"><label>Offset Y</label><input id="cropY" type="range" min="-100" max="100" step="1" value="0"></div>
+                    </div>
+                    <div class="app-dialog-actions">
+                        <button type="button" class="btn mini" data-crop-close>Cancel</button>
+                        <button type="button" class="btn mini" id="cropApplyBtn">Apply Crop</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(cropModal);
+            cropCanvas = cropModal.querySelector('#cropCanvas');
+            cropZoomInput = cropModal.querySelector('#cropZoom');
+            cropXInput = cropModal.querySelector('#cropX');
+            cropYInput = cropModal.querySelector('#cropY');
+
+            const redraw = () => drawCropPreview();
+            cropZoomInput.addEventListener('input', redraw);
+            cropXInput.addEventListener('input', redraw);
+            cropYInput.addEventListener('input', redraw);
+
+            cropModal.addEventListener('click', (event) => {
+                if (event.target === cropModal || event.target.matches('[data-crop-close]')) {
+                    cropModal.classList.remove('open');
+                }
+            });
+            cropModal.querySelector('#cropApplyBtn').addEventListener('click', async () => {
+                await applyCropToImage();
+            });
+        }
+
+        function drawCropPreview() {
+            if (!cropCanvas || !cropSourceImage) return;
+            const ctx = cropCanvas.getContext('2d');
+            const cw = cropCanvas.width;
+            const ch = cropCanvas.height;
+            const zoom = Number(cropZoomInput.value || 1);
+            const offsetX = Number(cropXInput.value || 0) / 100;
+            const offsetY = Number(cropYInput.value || 0) / 100;
+
+            ctx.clearRect(0, 0, cw, ch);
+            ctx.fillStyle = '#050a14';
+            ctx.fillRect(0, 0, cw, ch);
+
+            const baseScale = Math.max(cw / cropSourceImage.width, ch / cropSourceImage.height);
+            const drawW = cropSourceImage.width * baseScale * zoom;
+            const drawH = cropSourceImage.height * baseScale * zoom;
+            const maxShiftX = Math.max(0, (drawW - cw) / 2);
+            const maxShiftY = Math.max(0, (drawH - ch) / 2);
+            const dx = (cw - drawW) / 2 + offsetX * maxShiftX;
+            const dy = (ch - drawH) / 2 + offsetY * maxShiftY;
+            ctx.drawImage(cropSourceImage, dx, dy, drawW, drawH);
+        }
+
+        async function openCropEditor(imageName) {
+            ensureCropModal();
+            cropTargetFileName = imageName;
+            cropModal.querySelector('#cropTitle').textContent = `Crop: ${imageName}`;
+            cropZoomInput.value = '1';
+            cropXInput.value = '0';
+            cropYInput.value = '0';
+
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            const loaded = new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            });
+            img.src = `${imagesBasePath}${encodeURIComponent(imageName)}?t=${Date.now()}`;
+            await loaded;
+            cropSourceImage = img;
+            cropModal.classList.add('open');
+            drawCropPreview();
+        }
+
+        async function applyCropToImage() {
+            if (!cropCanvas || !cropTargetFileName) return;
+            const mimeType = getImageMimeType(cropTargetFileName);
+            const blob = await new Promise((resolve) => cropCanvas.toBlob(resolve, mimeType, 0.95));
+            if (!blob) {
+                showToast('Unable to create cropped image.', 'error');
+                return;
+            }
+            const croppedFile = new File([blob], cropTargetFileName, { type: mimeType });
+            const result = await uploadFilesBatch([croppedFile], null, { forceName: cropTargetFileName, forceOverwrite: true, skipConflictPrompt: true });
+            if (result.uploadedUrls.length > 0) {
+                cropModal.classList.remove('open');
+                showToast(`Cropped image saved: ${cropTargetFileName}`, 'success');
+                await Promise.all([loadGallery(), loadImagesFolderList(), refreshLibraryManager()]);
+                return;
+            }
+            await showDialog({
+                title: 'Crop Failed',
+                message: result.failedFiles.join('\n') || 'Unable to save cropped image.',
+                buttons: [{ id: 'ok', label: 'OK', className: 'btn mini' }]
+            });
+        }
+
+        async function deleteImageViaLocal(fileName) {
+            const res = await fetch('/api/delete_image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: fileName })
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || 'Local delete failed');
+            }
+            return true;
+        }
+
+        async function updateGitHubManifestRemove(fileName, githubHeaders) {
+            const manifestResponse = await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/images/manifest.json?ref=main', {
+                headers: githubHeaders
+            });
+            if (!manifestResponse.ok) return;
+            const manifestData = await manifestResponse.json();
+            const manifestSha = manifestData.sha || null;
+            let manifestList = [];
+            try {
+                manifestList = JSON.parse(atob((manifestData.content || '').replace(/\n/g, '')));
+            } catch {
+                manifestList = [];
+            }
+            manifestList = manifestList.filter((name) => name !== fileName);
+            const manifestBody = {
+                message: `Remove ${fileName} from image manifest`,
+                content: btoa(JSON.stringify(manifestList, null, 2) + '\n'),
+                branch: 'main',
+                sha: manifestSha
+            };
+            await fetch('https://api.github.com/repos/TooryanStudios/tooryan-website/contents/images/manifest.json', {
+                method: 'PUT',
+                headers: githubHeaders,
+                body: JSON.stringify(manifestBody)
+            });
+        }
+
+        async function deleteImageViaGitHub(fileName) {
+            const token = await getGitHubToken();
+            if (!token) throw new Error('GitHub token is required to delete images.');
+            const githubHeaders = {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github+json',
+                'Content-Type': 'application/json'
+            };
+            const pathName = `images/${fileName}`;
+            const existingRes = await fetch(`https://api.github.com/repos/TooryanStudios/tooryan-website/contents/${pathName}?ref=main`, {
+                headers: githubHeaders
+            });
+            if (!existingRes.ok) throw new Error('Image not found in GitHub repository.');
+            const existing = await existingRes.json();
+            const delRes = await fetch(`https://api.github.com/repos/TooryanStudios/tooryan-website/contents/${pathName}`, {
+                method: 'DELETE',
+                headers: githubHeaders,
+                body: JSON.stringify({
+                    message: `Delete image: ${fileName}`,
+                    sha: existing.sha,
+                    branch: 'main'
+                })
+            });
+            if (!delRes.ok) {
+                const errorText = await delRes.text();
+                throw new Error(errorText);
+            }
+            await updateGitHubManifestRemove(fileName, githubHeaders);
+            return true;
+        }
+
+        async function deleteImageByName(fileName) {
+            try {
+                await deleteImageViaLocal(fileName);
+                return true;
+            } catch (localErr) {
+                console.log('Local delete unavailable, using GitHub fallback:', localErr?.message || localErr);
+                await deleteImageViaGitHub(fileName);
+                return true;
+            }
+        }
+
+        function ensureLibraryManagerModal() {
+            if (libraryManagerModal) return;
+            libraryManagerModal = document.createElement('div');
+            libraryManagerModal.className = 'image-picker-modal';
+            libraryManagerModal.innerHTML = `
                 <div class="image-picker-panel">
                     <div class="image-picker-head">
-                        <strong>Select Image from Library</strong>
-                        <button type="button" class="btn mini" data-image-picker-close>Close</button>
+                        <strong>Library Image Management</strong>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button type="button" class="btn mini" id="libraryUploadTrigger">Upload</button>
+                            <button type="button" class="btn mini" id="libraryRefreshBtn">Refresh</button>
+                            <button type="button" class="btn mini" data-library-close>Close</button>
+                        </div>
                     </div>
-                    <div class="image-picker-grid" id="imagePickerGrid">
+                    <input id="libraryUploadInput" type="file" accept="image/*" multiple style="display:none;" />
+                    <div class="image-picker-grid" id="libraryManagerGrid">
                         <p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>
                     </div>
                 </div>
             `;
-            document.body.appendChild(imagePickerModal);
-            imagePickerGrid = imagePickerModal.querySelector('#imagePickerGrid');
-            imagePickerModal.addEventListener('click', (event) => {
-                if (event.target === imagePickerModal || event.target.matches('[data-image-picker-close]')) {
-                    imagePickerModal.classList.remove('open');
+            document.body.appendChild(libraryManagerModal);
+            libraryManagerGrid = libraryManagerModal.querySelector('#libraryManagerGrid');
+
+            const uploadInput = libraryManagerModal.querySelector('#libraryUploadInput');
+            libraryManagerModal.querySelector('#libraryUploadTrigger').addEventListener('click', () => uploadInput.click());
+            libraryManagerModal.querySelector('#libraryRefreshBtn').addEventListener('click', () => refreshLibraryManager());
+            uploadInput.addEventListener('change', async () => {
+                const files = Array.from(uploadInput.files || []);
+                uploadInput.value = '';
+                if (!files.length) return;
+                const result = await uploadFilesBatch(files);
+                await Promise.all([loadGallery(), loadImagesFolderList(), refreshLibraryManager()]);
+                let msg = `${result.uploadedUrls.length} image(s) uploaded from Library Manager.`;
+                if (result.failedFiles.length) {
+                    msg += `\n\nFailed:\n- ${result.failedFiles.join('\n- ')}`;
+                }
+                showToast(msg, result.failedFiles.length ? 'warning' : 'success', 4200);
+            });
+
+            libraryManagerModal.addEventListener('click', (event) => {
+                if (event.target === libraryManagerModal || event.target.matches('[data-library-close]')) {
+                    libraryManagerModal.classList.remove('open');
                 }
             });
         }
 
-        async function openImagePickerForInput(input, previewEl) {
-            ensureImagePickerModal();
-            imagePickerTargetInput = input;
-            imagePickerTargetPreview = previewEl;
-            imagePickerModal.classList.add('open');
-            imagePickerGrid.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>';
+        async function refreshLibraryManager() {
+            if (!libraryManagerGrid) return;
+            libraryManagerGrid.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">Loading images...</p>';
             const imageNames = await fetchAvailableImageNames();
             if (!imageNames.length) {
-                imagePickerGrid.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">No images found in library.</p>';
+                libraryManagerGrid.innerHTML = '<p style="color:var(--muted); font-size:0.8rem;">No images found in library.</p>';
                 return;
             }
-            imagePickerGrid.innerHTML = '';
+
+            libraryManagerGrid.innerHTML = '';
             imageNames.forEach((name) => {
-                const item = document.createElement('button');
-                item.type = 'button';
+                const item = document.createElement('div');
                 item.className = 'image-picker-item';
-                item.innerHTML = `<img src="${imagesBasePath}${encodeURIComponent(name)}?t=${Date.now()}" alt="${name}"><span>${name}</span>`;
-                item.addEventListener('click', () => {
-                    const selectedUrl = `./images/${name}`;
-                    imagePickerTargetInput.value = selectedUrl;
-                    imagePickerTargetInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    autoFillTarget = imagePickerTargetInput;
-                    setImagePreview(imagePickerTargetPreview, selectedUrl);
-                    imagePickerModal.classList.remove('open');
+                item.innerHTML = `
+                    <img src="${imagesBasePath}${encodeURIComponent(name)}?t=${Date.now()}" alt="${name}">
+                    <span>${name}</span>
+                    <div class="library-item-actions">
+                        <button type="button" class="btn mini" data-lib-copy>Copy URL</button>
+                        <button type="button" class="btn mini" data-lib-crop>Crop</button>
+                        <button type="button" class="btn mini" data-lib-delete>Delete</button>
+                    </div>
+                `;
+
+                item.querySelector('[data-lib-copy]').addEventListener('click', () => {
+                    const url = `./images/${name}`;
+                    navigator.clipboard.writeText(url).then(() => showToast(`Copied URL: ${url}`, 'success'));
                 });
-                imagePickerGrid.appendChild(item);
-            });
-        }
 
-        async function uploadSingleForImageField(input, previewEl, triggerBtn) {
-            const chooser = document.createElement('input');
-            chooser.type = 'file';
-            chooser.accept = 'image/*';
-            chooser.style.display = 'none';
-            document.body.appendChild(chooser);
-
-            chooser.addEventListener('change', async () => {
-                const file = chooser.files && chooser.files[0];
-                chooser.remove();
-                if (!file) return;
-
-                const previousValue = input.value;
-                const tempPreviewUrl = URL.createObjectURL(file);
-                setImagePreview(previewEl, tempPreviewUrl);
-                triggerBtn.disabled = true;
-                const previousLabel = triggerBtn.textContent;
-                triggerBtn.textContent = 'Uploading...';
-
-                try {
-                    const result = await uploadFilesBatch([file], (index, total) => {
-                        triggerBtn.textContent = `Uploading ${index}/${total}`;
-                    });
-                    const uploadedUrl = result.uploadedUrls[0];
-                    if (uploadedUrl) {
-                        input.value = uploadedUrl;
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                        autoFillTarget = input;
-                    } else {
-                        input.value = previousValue;
-                        input.dispatchEvent(new Event('input', { bubbles: true }));
-                        const reason = result.failedFiles.join('\n') || 'Upload failed.';
-                        alert(`Image upload failed.\n\n${reason}`);
+                item.querySelector('[data-lib-crop]').addEventListener('click', async () => {
+                    try {
+                        await openCropEditor(name);
+                    } catch {
+                        showToast('Unable to open crop editor for this image.', 'error');
                     }
-                } finally {
-                    URL.revokeObjectURL(tempPreviewUrl);
-                    setImagePreview(previewEl, input.value);
-                    triggerBtn.disabled = false;
-                    triggerBtn.textContent = previousLabel;
-                }
-            });
+                });
 
-            chooser.click();
+                item.querySelector('[data-lib-delete]').addEventListener('click', async () => {
+                    const confirmDelete = await showDialog({
+                        title: 'Delete Image',
+                        message: `Delete "${name}" from library?`,
+                        buttons: [
+                            { id: 'cancel', label: 'Cancel', className: 'btn mini' },
+                            { id: 'delete', label: 'Delete', className: 'btn mini' }
+                        ]
+                    });
+                    if (confirmDelete.action !== 'delete') return;
+                    try {
+                        await deleteImageByName(name);
+                        showToast(`Deleted: ${name}`, 'success');
+                        await Promise.all([loadGallery(), loadImagesFolderList(), refreshLibraryManager()]);
+                    } catch (err) {
+                        await showDialog({
+                            title: 'Delete Failed',
+                            message: err.message || 'Unable to delete image.',
+                            buttons: [{ id: 'ok', label: 'OK', className: 'btn mini' }]
+                        });
+                    }
+                });
+
+                libraryManagerGrid.appendChild(item);
+            });
         }
 
-        function enhanceImageInput(input, labelText = '') {
-            if (!input || input.dataset.imageEnhanced === 'true') return;
-            input.dataset.imageEnhanced = 'true';
-
-            const tools = document.createElement('div');
-            tools.className = 'image-field-tools';
-
-            const preview = document.createElement('div');
-            preview.className = 'image-preview';
-            setImagePreview(preview, input.value);
-            input.addEventListener('input', () => {
-                setImagePreview(preview, input.value);
-            });
-
-            const actions = document.createElement('div');
-            actions.className = 'image-field-actions';
-
-            const libraryBtn = document.createElement('button');
-            libraryBtn.type = 'button';
-            libraryBtn.className = 'btn mini';
-            libraryBtn.textContent = 'From Library';
-            libraryBtn.addEventListener('click', () => openImagePickerForInput(input, preview));
-
-            const uploadBtn = document.createElement('button');
-            uploadBtn.type = 'button';
-            uploadBtn.className = 'btn mini';
-            uploadBtn.textContent = 'Upload New';
-            uploadBtn.addEventListener('click', () => uploadSingleForImageField(input, preview, uploadBtn));
-
-            actions.appendChild(libraryBtn);
-            actions.appendChild(uploadBtn);
-            tools.appendChild(preview);
-            tools.appendChild(actions);
-
-            input.insertAdjacentElement('afterend', tools);
-            if (isImageField(input.name || input.dataset.arrayField || '', labelText)) {
-                attachAutoFillListeners(input);
-            }
+        async function openLibraryManager() {
+            ensureLibraryManagerModal();
+            ensureCropModal();
+            libraryManagerModal.classList.add('open');
+            await refreshLibraryManager();
         }
 
         function createArrayEntry(config, entryData = {}) {
@@ -931,9 +1348,6 @@
                         updateTitle();
                     }
                 });
-                if (input.tagName === 'INPUT' && isImageField(field.key, field.label)) {
-                    enhanceImageInput(input, field.label);
-                }
                 card.appendChild(fieldWrapper);
             });
 
@@ -1036,9 +1450,6 @@
                     input.value = content[key] || '';
                     field.appendChild(input);
                     attachAutoFillListeners(input);
-                    if (input.tagName === 'INPUT' && isImageField(key, label.textContent)) {
-                        enhanceImageInput(input, label.textContent);
-                    }
                     body.appendChild(field);
                 });
 
@@ -1115,11 +1526,20 @@
         });
 
         document.getElementById('resetBtn').addEventListener('click', async () => {
-            if(confirm('Are you sure you want to reset to default content?')) {
+            const resetChoice = await showDialog({
+                title: 'Reset Content',
+                message: 'Are you sure you want to reset to default content?',
+                buttons: [
+                    { id: 'cancel', label: 'Cancel', className: 'btn mini' },
+                    { id: 'confirm', label: 'Reset', className: 'btn mini' }
+                ]
+            });
+            if (resetChoice.action === 'confirm') {
                 await window.resetTooryanContent();
                 content = await window.getTooryanContent();
                 buildForm();
                 refreshPreview();
+                showToast('Content has been reset to defaults.', 'warning');
             }
         });
 
@@ -1148,7 +1568,7 @@
                 img.title = 'Click to copy URL';
                 img.onclick = () => {
                     navigator.clipboard.writeText(relativeUrl).then(() => {
-                        alert('Copied URL: ' + relativeUrl);
+                        showToast(`Copied URL: ${relativeUrl}`, 'success');
                     });
                 };
                 gallery.appendChild(img);
@@ -1170,12 +1590,24 @@
         document.getElementById('refreshImagesBtn').addEventListener('click', async () => {
             await Promise.all([loadGallery(), loadImagesFolderList()]);
         });
+        document.getElementById('manageLibraryBtn').addEventListener('click', async () => {
+            await openLibraryManager();
+        });
 
-        function getGitHubToken() {
+        async function getGitHubToken() {
             let token = localStorage.getItem('github_token');
             if (!token) {
-                token = prompt('Enter your GitHub Personal Access Token (with repo permissions):\n\nThis will be saved locally for future uploads.');
-                if (!token) return null;
+                const tokenDialog = await showDialog({
+                    title: 'GitHub Token Required',
+                    message: 'Enter your GitHub Personal Access Token with `repo` permissions.\nIt will be stored locally in this browser.',
+                    input: { type: 'password', placeholder: 'ghp_...' },
+                    buttons: [
+                        { id: 'cancel', label: 'Cancel', className: 'btn mini' },
+                        { id: 'save', label: 'Save Token', className: 'btn mini' }
+                    ]
+                });
+                if (tokenDialog.action !== 'save' || !tokenDialog.value) return null;
+                token = tokenDialog.value;
                 localStorage.setItem('github_token', token);
             }
             return token;
@@ -1190,9 +1622,15 @@
             });
         }
 
-        async function uploadSingleViaLocal(file) {
+        async function uploadSingleViaLocal(file, uploadOptions = {}) {
             const formData = new FormData();
             formData.append('image', file);
+            if (uploadOptions.desiredName) {
+                formData.append('desiredName', uploadOptions.desiredName);
+            }
+            if (uploadOptions.overwrite) {
+                formData.append('overwrite', 'true');
+            }
 
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 2000);
@@ -1204,7 +1642,7 @@
                 });
                 const data = await res.json();
                 if (data.status !== 'success' || !data.url) {
-                    throw new Error('Local upload returned unexpected response.');
+                    throw new Error(data.message || 'Local upload returned unexpected response.');
                 }
                 return data.url;
             } finally {
@@ -1212,27 +1650,42 @@
             }
         }
 
-        async function uploadSingleViaGitHub(file, token) {
+        async function uploadSingleViaGitHub(file, token, uploadOptions = {}) {
             const githubHeaders = {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/vnd.github+json',
                 'Content-Type': 'application/json'
             };
             const base64Content = await readFileAsBase64(file);
-            const timestamp = Date.now();
-            const randomSuffix = Math.random().toString(36).slice(2, 6);
-            const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-            const filename = `${timestamp}_${randomSuffix}_${cleanName}`;
+            const cleanName = sanitizeFileName(file.name);
+            const filename = uploadOptions.desiredName || cleanName;
+            const overwrite = Boolean(uploadOptions.overwrite);
 
             const imagePath = `images/${filename}`;
+            let existingImageSha = null;
+            const existingImageResponse = await fetch(`https://api.github.com/repos/TooryanStudios/tooryan-website/contents/${imagePath}?ref=main`, {
+                headers: githubHeaders
+            });
+            if (existingImageResponse.ok) {
+                const existingImageData = await existingImageResponse.json();
+                existingImageSha = existingImageData.sha || null;
+                if (!overwrite) {
+                    throw new Error(`Image already exists: ${filename}`);
+                }
+            }
+
+            const uploadBody = {
+                message: overwrite ? `Override image: ${filename}` : `Upload image: ${filename}`,
+                content: base64Content,
+                branch: 'main'
+            };
+            if (existingImageSha) {
+                uploadBody.sha = existingImageSha;
+            }
             const uploadResponse = await fetch(`https://api.github.com/repos/TooryanStudios/tooryan-website/contents/${imagePath}`, {
                 method: 'PUT',
                 headers: githubHeaders,
-                body: JSON.stringify({
-                    message: `Upload image: ${filename}`,
-                    content: base64Content,
-                    branch: 'main'
-                })
+                body: JSON.stringify(uploadBody)
             });
 
             if (!uploadResponse.ok) {
@@ -1284,11 +1737,12 @@
             return `./images/${filename}`;
         }
 
-        async function uploadFilesBatch(files, onProgress) {
+        async function uploadFilesBatch(files, onProgress, options = {}) {
             let useGitHub = false;
             let githubToken = null;
             const uploadedUrls = [];
             const failedFiles = [];
+            const existingNameSet = new Set(await fetchAvailableImageNames());
 
             for (let i = 0; i < files.length; i += 1) {
                 const file = files[i];
@@ -1297,10 +1751,41 @@
                 }
 
                 try {
+                    const originalName = sanitizeFileName(file.name);
+                    if (!originalName) {
+                        failedFiles.push(`${file.name}: Invalid filename.`);
+                        continue;
+                    }
+
+                    let desiredName = options.forceName ? sanitizeFileName(options.forceName) : originalName;
+                    let overwrite = Boolean(options.forceOverwrite);
+                    if (existingNameSet.has(desiredName) && !options.skipConflictPrompt && !options.forceOverwrite) {
+                        const overwriteChoice = await showDialog({
+                            title: 'Image Already Exists',
+                            message: `An image named "${desiredName}" already exists.\nWhat would you like to do?`,
+                            buttons: [
+                                { id: 'cancel', label: 'Skip', className: 'btn mini' },
+                                { id: 'keep-both', label: 'Keep Both', className: 'btn mini' },
+                                { id: 'override', label: 'Override', className: 'btn mini' }
+                            ]
+                        });
+
+                        if (overwriteChoice.action === 'cancel') {
+                            failedFiles.push(`${file.name}: Skipped by user.`);
+                            continue;
+                        }
+                        if (overwriteChoice.action === 'override') {
+                            overwrite = true;
+                            desiredName = options.forceName ? sanitizeFileName(options.forceName) : originalName;
+                        } else {
+                            desiredName = uniqueFileName(options.forceName ? sanitizeFileName(options.forceName) : originalName, existingNameSet);
+                        }
+                    }
+
                     let url;
                     if (!useGitHub) {
                         try {
-                            url = await uploadSingleViaLocal(file);
+                            url = await uploadSingleViaLocal(file, { desiredName, overwrite });
                         } catch (localErr) {
                             useGitHub = true;
                             console.log('Local upload unavailable, switching to GitHub fallback:', localErr?.message || localErr);
@@ -1309,12 +1794,13 @@
 
                     if (useGitHub) {
                         if (!githubToken) {
-                            githubToken = getGitHubToken();
+                            githubToken = await getGitHubToken();
                             if (!githubToken) throw new Error('GitHub token is required to continue uploads.');
                         }
-                        url = await uploadSingleViaGitHub(file, githubToken);
+                        url = await uploadSingleViaGitHub(file, githubToken, { desiredName, overwrite });
                     }
 
+                    existingNameSet.add(desiredName);
                     uploadedUrls.push(url);
                 } catch (fileErr) {
                     const errorMessage = fileErr?.message || 'Upload failed';
@@ -1337,7 +1823,7 @@
             const fileInput = document.getElementById('imageUpload');
             const files = Array.from(fileInput.files || []);
             if (files.length === 0) {
-                alert('Please select one or more images first.');
+                showToast('Select one or more images first.', 'warning');
                 return;
             }
 
@@ -1367,9 +1853,17 @@
                     if (failedFiles.length > 0) {
                         message += `\n\n${failedFiles.length} failed:\n- ${failedFiles.join('\n- ')}`;
                     }
-                    alert(message);
+                    await showDialog({
+                        title: 'Upload Complete',
+                        message,
+                        buttons: [{ id: 'ok', label: 'OK', className: 'btn mini' }]
+                    });
                 } else {
-                    alert(`No images were uploaded.\n\n${failedFiles.join('\n') || 'Unknown error.'}`);
+                    await showDialog({
+                        title: 'Upload Result',
+                        message: `No images were uploaded.\n\n${failedFiles.join('\n') || 'Unknown error.'}`,
+                        buttons: [{ id: 'ok', label: 'OK', className: 'btn mini' }]
+                    });
                 }
             } finally {
                 btn.disabled = false;
